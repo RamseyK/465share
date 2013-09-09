@@ -48,11 +48,11 @@
 $active_group = 'default';
 $active_record = TRUE;
 
-$db['default']['hostname'] = 'va.ramseykant.com';
+$db['default']['hostname'] = '108.28.247.127';
 $db['default']['username'] = '465webuser';
 $db['default']['password'] = 'jZhzr8fR';
 $db['default']['database'] = '465share';
-$db['default']['dbdriver'] = 'mysqli';
+$db['default']['dbdriver'] = 'mysql';
 $db['default']['dbprefix'] = '';
 $db['default']['pconnect'] = TRUE;
 $db['default']['db_debug'] = TRUE;
