@@ -33,7 +33,12 @@ class Files extends CI_Controller
 
 		// File upload attempted
 		if($this->input->post('upload_submit')) {
-			$this->load->library('upload');
+			$config['upload_path'] = './uploads/';
+			$config['allowed_types'] = '*'; // All types currently allowed. ex: gif|jpg|png
+			$config['max_size'] = 10240; // 10240 = 10MB. Max size of file upload in kb
+			$config['max_filename'] = 128;
+			$config['encrypt_name'] = TRUE; // File name will be converted to random encrypted string
+			$this->load->library('upload', $config);
 
 			if($this->upload->do_upload()) { // Upload succeeded
 				$file_id = $this->Files_model->addFile($this->session->userdata('account_id'), $this->upload->data());
