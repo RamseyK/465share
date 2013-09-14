@@ -33,12 +33,14 @@ class Files extends CI_Controller
 
 		// File upload attempted
 		if($this->input->post('upload_submit')) {
-			$config['upload_path'] = './uploads/';
-			$config['allowed_types'] = '*'; // All types currently allowed. ex: gif|jpg|png
-			$config['max_size'] = 10240; // 10240 = 10MB. Max size of file upload in kb
-			$config['max_filename'] = 128;
-			$config['encrypt_name'] = TRUE; // File name will be converted to random encrypted string
-			$this->load->library('upload', $config);
+			$uc['upload_path'] = './uploads/';
+			$uc['allowed_types'] = '*'; // All types currently allowed. ex: gif|jpg|png
+			$uc['max_size'] = 10240; // 10240 = 10MB. Max size of file upload in kb
+			$uc['max_filename'] = 128;
+			$uc['encrypt_name'] = TRUE; // File name will be converted to random encrypted string
+
+			$this->load->library('upload');
+			$this->upload->initialize($uc);
 
 			if($this->upload->do_upload()) { // Upload succeeded
 				$file_id = $this->Files_model->addFile($this->session->userdata('account_id'), $this->upload->data());
@@ -79,8 +81,8 @@ class Files extends CI_Controller
 			redirect('files');
 			return;
 		}
-		if($page_data['file']->deleted) {
-			$this->session->set_flashdata('error_message', 'The file you were trying to access has been deleted');
+		if($page_data['file']->deleted || !file_exists($page_data['file']->full_path)) {
+			$this->session->set_flashdata('error_message', 'The file you were trying to access has either been deleted or is marked for deletion');
 			redirect('files');
 			return;
 		}
