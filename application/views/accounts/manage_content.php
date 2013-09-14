@@ -8,7 +8,10 @@
 		<span style="font-weight: bold">Recently Uploaded</span><br /><br />
 	</div>
 	<div id="account-tab">
-		<span style="font-weight: bold">Email:</span> <?=$account->email?><br />
+		<span style="font-weight: bold">Account Info</span><br />
+		<span>Email:</span> <?=$account->email?><br />
+		<span>Member Since:</span> <?=unix_to_human($account->date_joined)?> GMT<br />
+		<br />
 		
 		<span style="font-weight: bold">Change Password</span><br />
 		<div class="ui-widget-content ui-corner-all">

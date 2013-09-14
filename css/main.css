@@ -75,6 +75,7 @@ div#content{
 div#rightpane{
 	float:right;
 	width:25%;
+	margin-bottom: 20px;
 }
 
 div#footer{

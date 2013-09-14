@@ -1,5 +1,5 @@
 <script>
 $(function() {
-	$("#myfiles_tabs").tabs();
+	$("#download_button").button();
 });
 </script>

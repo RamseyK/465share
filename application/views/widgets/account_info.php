@@ -1,6 +1,5 @@
-<h2>My Account</h2>
 <div class="ui-widget-content ui-corner-all">
-Welcome <?=$this->session->userdata('email')?> to 465share.com!<br /><br />
+<span style="font-weight: bold">Welcome <?=$this->session->userdata('email')?> to 465share.com!</span><br /><br />
 <?=anchor('accounts/manage', 'Manage Account', array('id' => 'manage_btn'))?> 
 <?=anchor('accounts/logout', 'Logout', array('id' => 'logout_btn'))?><br />
 <script>
@@ -10,8 +9,6 @@ $(function() {
 });
 </script>
 </div>
-
-<h2><?=anchor('files', 'My Files')?></h2>
 
 <?php if($this->session->userdata('is_admin') == true) {?>
 <div class="ui-widget-content ui-corner-all">

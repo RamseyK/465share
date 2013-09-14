@@ -29,7 +29,10 @@ class Accounts extends CI_Controller
 	 */
 	function register() {
 		// If the account is already logged in and somehow ends up here, forward them to their profile
-		if ($this->Accounts_model->isLoggedIn()) redirect('accounts/manage');
+		if ($this->Accounts_model->isLoggedIn()) {
+			redirect('accounts/manage');
+			return;
+		}
 		
 		$this->load->library('form_validation');
 		
@@ -74,11 +77,14 @@ class Accounts extends CI_Controller
 	 */
 	function showLogin() {
 		// If the account is already logged in and somehow ends up here, forward them to their profile
-		if ($this->Accounts_model->isLoggedIn()) redirect('accounts/manage');
+		if ($this->Accounts_model->isLoggedIn()) {
+			redirect('accounts/manage');
+			return;
+		}
 	
 		// Load the main page template
 		$page_data['nocache'] = true;
-		$page_data['js'] = $this->load->view('accounts/reg_js', '', true);
+		$page_data['js'] = $this->load->view('accounts/reg_js', NULL, true);
 
 		// Load different content depending on whether or not new account registration is allowed
 		if($this->config->item('registration_enabled') === TRUE) {
@@ -95,8 +101,10 @@ class Accounts extends CI_Controller
 	
 	// Login process function
 	function login() {
-		if(!$this->input->post('login'))
+		if(!$this->input->post('login')) {
 			redirect('accounts/showLogin');
+			return;
+		}
 			
 		$this->load->library('form_validation');
 	
@@ -116,7 +124,7 @@ class Accounts extends CI_Controller
 			// Check the login credentials against the db
 			if ($this->Accounts_model->doAccountLogin($this->input->post('email'), $this->input->post('password')) != true) {
 				// account didnt enter a valid account/pass combo
-				$error_msg = 'Invalid Email and Password combination.';
+				$error_msg = 'Invalid login credentials or the account is disabled.';
 				$result = false;
 			} else {
 				// We succeeded
@@ -146,8 +154,9 @@ class Accounts extends CI_Controller
 	 * Loads the account management page for the current account session
 	 */
 	function manage() {
-		// The account must be logged in to view account management
-		$this->Accounts_model->checkLogin();
+		// Visitor must be logged in
+		if(!$this->Accounts_model->checkLogin())
+			return;
 		
 		$this->load->model('Files_model');
 		
@@ -157,9 +166,9 @@ class Accounts extends CI_Controller
 		
 		// Load the main page template
 		$page_data['nocache'] = true;
-		$page_data['js'] = $this->load->view('accounts/manage_js', '', true);
+		$page_data['js'] = $this->load->view('accounts/manage_js', NULL, true);
 		$page_data['content'] = $this->load->view('accounts/manage_content', $data, true);
-		$page_data['widgets'] = $this->load->view('widgets/account_info', '', true);
+		$page_data['widgets'] = $this->load->view('widgets/account_info', NULL, true);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);
@@ -169,8 +178,9 @@ class Accounts extends CI_Controller
 	 * Processing function exposed for changing passwords
 	 */
 	function changepw() {
-		// Account must be logged in
-		$this->Accounts_model->checkLogin();
+		// Visitor must be logged in
+		if(!$this->Accounts_model->checkLogin())
+			return;
 		
 		$this->load->library('form_validation');
 		
@@ -185,7 +195,7 @@ class Accounts extends CI_Controller
 				$this->session->set_flashdata('error_message', validation_errors());
 			} else {
 				// Perform an update in the DB
-				if ($this->Accounts_model->change_password($this->session->userdata('account_id'), $this->input->post('old_password'), $this->input->post('new_password'))) {
+				if ($this->Accounts_model->changePassword($this->session->userdata('account_id'), $this->input->post('old_password'), $this->input->post('new_password'))) {
 					// Successful
 					$this->session->set_flashdata('status_message', 'Password changed successfully');
 				} else {
@@ -204,7 +214,10 @@ class Accounts extends CI_Controller
 	 */
 	function resetpw() {
 		// If the account is already logged in and somehow ends up here, forward them to their profile
-		if ($this->Accounts_model->isLoggedIn()) redirect('accounts/manage');
+		if ($this->Accounts_model->isLoggedIn()) {
+			redirect('accounts/manage');
+			return;
+		}
 		
 		$this->load->library('form_validation');
 		
@@ -219,7 +232,7 @@ class Accounts extends CI_Controller
 				$page_data['error_message'] = validation_errors();
 			} else {
 				// Reset password processing
-				if($this->Accounts_model->reset_password($this->input->post('email'))) {
+				if($this->Accounts_model->resetPassword($this->input->post('email'))) {
 					$page_data['status_message'] = 'Password Reset! Check your email';
 				} else {
 					$page_data['error_message'] = 'Unable to reset the password for that account. Is the email valid?';
@@ -228,9 +241,9 @@ class Accounts extends CI_Controller
 		}
 		
 		// Load the password reset page no matter what
-		$page_data['js'] = $this->load->view('accounts/resetpw_js', '', true);
-		$page_data['content'] = $this->load->view('accounts/resetpw_content', '', true);
-		$page_data['widgets'] = $this->load->view('widgets/login', '', true);
+		$page_data['js'] = $this->load->view('accounts/resetpw_js', NULL, true);
+		$page_data['content'] = $this->load->view('accounts/resetpw_content', NULL, true);
+		$page_data['widgets'] = $this->load->view('widgets/login', NULL, true);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);

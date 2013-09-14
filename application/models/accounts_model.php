@@ -4,9 +4,11 @@ class Accounts_model extends CI_Model
 {
 	function __construct() {
 		parent::__construct();
+
+		$this->load->helper('string'); // Used in changePassword, resetPassword, addAccount
 	}
 	
-	/*
+	/**
 	 * Check a email / password combo against the DB and setup session data
 	 *
 	 * @param $email Email of the user
@@ -22,7 +24,7 @@ class Accounts_model extends CI_Model
         
         // Account doesnt even exist, bail
         if ($res->num_rows() == 0)
-            return false;
+            return FALSE;
             
     	// Get the result array (should only be 1 since we set a limit)
     	$row = $res->row();
@@ -36,37 +38,52 @@ class Accounts_model extends CI_Model
         
         // If the hashed password doesnt match the computed password, bail
         if ($hashedpw != $computedpw)
-        	return false;
+        	return FALSE;
+
+        // Account must not be disabled
+        if ($row->disabled)
+        	return FALSE;
             
     	// Fill in the session data
-		$this->session->set_userdata('logged_in', true);
+		$this->session->set_userdata('logged_in', TRUE);
 		$this->session->set_userdata('email', $row->email);
 		$this->session->set_userdata('account_id', $row->account_pk);	
 		if($this->accountHasPermission($row->account_pk, 'ADMIN'))
-			$this->session->set_userdata('is_admin', true);
+			$this->session->set_userdata('is_admin', TRUE);
 		else
-			$this->session->set_userdata('is_admin', false);
+			$this->session->set_userdata('is_admin', FALSE);
         
-        return true;
+        return TRUE;
     }
     
-    // Destroy the user's session (on logout)
+    /**
+     * Destroy the user's session (on logout)
+     */
     function doAccountLogout() {
     	$this->session->sess_destroy();
     }
         
-    // Check if the user is already logged in
+    /**
+     * Check if the user is already logged in
+     *
+     * @return TRUE if logged in, FALSE otherwise
+     */
     function isLoggedIn() {
     	return $this->session->userdata('logged_in') == true;
     }
     
-    // If user is logged in, do nothing. If user is not logged in, redirect.
+    /**
+     * If user is logged in, do nothing. If user is not logged in, redirect
+     *
+     * @return TRUE if user is logged in, FALSE otherwise
+     */
     function checkLogin() {
         if($this->isLoggedIn()) {
-            return;
+            return TRUE;
 		} else {
             $this->session->set_flashdata('error_message', 'You must be logged in to perform this action!');
             redirect('accounts/showLogin', 'location');
+            return FALSE;
 		}
     }
     
@@ -99,24 +116,37 @@ class Accounts_model extends CI_Model
             return FALSE;
 	
 		// Generate salt for password
-		$this->load->helper('string');
 		$salt = random_string('alnum', 16);
 		
 		// Insert account to the database
 		$account = array(
 			'email'              => $data['email'],
 			'password'              => md5(md5($data['password']) . $salt),
-			'salt'              	=> $salt
+			'salt'              	=> $salt,
+			'disabled'				=> FALSE,
+			'date_joined'			=> now()
+
 		);
 		$this->db->insert('accounts', $account);
 		
-		if($this->db->affected_rows() == 1)
+		// Account was successfully added to the DB
+		if($this->db->affected_rows() == 1) {
+			// Send a welcome email
+			$this->load->library('email');
+			$this->email->from('noreply@465share.com', '465share.com');
+			$this->email->to($data['email']);
+			$this->email->subject('Welcome to 465share.com!');
+			$this->email->message('Welcome ' . $data['email'] . ' to 465share.com. You can now upload files!');
+			$this->email->send(); // NOTE: This returns TRUE/FALSE depending if the email sent properly. We don't care if it failed so the return value isnt checked
+
+			// Indicate to the controller creation succeeded
 			return TRUE;
+		}
 		
 		return FALSE;
 	}
 	
-	/*
+	/**
 	 * Attempt to change a users password
 	 *
 	 * @param $account_id ID of the user account that needs its password changed
@@ -124,9 +154,9 @@ class Accounts_model extends CI_Model
 	 * @param $new_pass Unhashed plain text new password to replace the old one with
 	 * @return TRUE if successful
 	 */
-	function change_password($account_id, $old_pass, $new_pass) {
+	function changePassword($account_id, $old_pass, $new_pass) {
 		// Get account row in the database
-		$row = $this->Account_model->getAccount($account_id);
+		$row = $this->Accounts_model->getAccount($account_id);
 		
 		// Hash the old password with the salt and compare it to the password in the DB
 		$old_hash = md5(md5($old_pass) . $row->salt);
@@ -134,7 +164,6 @@ class Accounts_model extends CI_Model
 			return FALSE;
 
 		// Generate a new salt for password, calculate the hash, and update the db
-		$this->load->helper('string');
 		$salt = random_string('alnum', 16);
 		$new_hash = md5(md5($new_pass) . $salt);
 		$this->db->where('account_pk', $account_id);
@@ -143,20 +172,19 @@ class Accounts_model extends CI_Model
 		return $this->db->affected_rows() == 1;
 	}
 	
-	/*
+	/**
 	 * Reset password for a user account to a new random password
 	 *
 	 * @param $email Email of the user
 	 * @return TRUE if successful
 	 */
-	function reset_password($email) {
+	function resetPassword($email) {
 		// If the account doesnt exist, bail
-		$account = $this->Account_model->getAccountByEmail($email);
+		$account = $this->Accounts_model->getAccountByEmail($email);
 		if($account == NULL)
 			return FALSE;
 		
 		// Generate and send the password to the user
-		$this->load->helper('string');
 		$new_pass = random_string('alnum', 8);
 		$this->load->library('email');
 		$this->email->from('noreply@465share.com', '465share.com');
