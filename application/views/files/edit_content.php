@@ -7,6 +7,11 @@
 	</ul>
 	<div id="info-tab">
 		<span style="font-weight: bold">Info</span><br /><br />
+		<span style="font-weight: bold">Name:</span> <?=$file->orig_name?><br />
+		<span style="font-weight: bold">Type:</span> <?=$file->type?><br />
+		<span style="font-weight: bold">Size:</span> <?=$file->size_kb?> KB<br />
+		<span style="font-weight: bold">Date Added:</span> <?=$file->date_added?><br />
+		<span style="font-weight: bold">Owner:</span> <?=$file->owner_id?><br />
 	</div>
 	<div id="permissions-tab">
 		<span style="font-weight: bold">Permissions</span><br /><br />
