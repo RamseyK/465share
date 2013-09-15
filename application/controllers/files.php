@@ -17,9 +17,14 @@ class Files extends CI_Controller
 		if(!$this->Accounts_model->checkLogin())
 			return;
 
+		// Pull file data for all tabs
+		$page_data['uploaded_files'] = $this->Files_model->getFilesByOwner($this->session->userdata('account_id'));
+		$page_data['sharedwith_files'] = array();
+		$page_data['sharedby_files'] = array();
+
 		// Load template components (all are optional)
-		$page_data['js'] = $this->load->view('files/index_js', NULL, true);
-		$page_data['content'] = $this->load->view('files/index_content', NULL, true);
+		$page_data['js'] = $this->load->view('files/index_js', $page_data, true);
+		$page_data['content'] = $this->load->view('files/index_content', $page_data, true);
 		$page_data['widgets'] = $this->load->view('files/index_widgets', NULL, true);
 		
 		// Send page data to the site_main and have it rendered
@@ -132,17 +137,7 @@ class Files extends CI_Controller
 
 		if($this->input->post('download_submit')) {
 			// Download button pressed, send the file to the client
-			header('Content-Description: File Transfer');
-			header('Content-Type: application/octet-stream');
-			header('Content-Disposition: attachment; filename='.basename($page_data['file']->orig_name));
-			header('Content-Transfer-Encoding: binary');
-			header('Expires: 0');
-			header('Cache-Control: must-revalidate');
-			header('Pragma: public');
-			header('Content-Length: ' . filesize($page_data['file']->full_path));
-			ob_clean();
-			flush();
-			readfile($page_data['file']->full_path);
+			$this->_sendDownload($page_data['file']->orig_name, $page_data['file']->full_path);
 		} else {
 			// Show Download page
 			// Load template components (all are optional)
@@ -153,6 +148,28 @@ class Files extends CI_Controller
 			// Send page data to the site_main and have it rendered
 			$this->load->view('site_main', $page_data);
 		}
+	}
+
+	public function public_link($key) {
+		if(empty($key)) {
+			redirect('');
+			return;
+		}
+	}
+
+	private function _sendDownload($name, $full_path) {
+		header('Content-Description: File Transfer');
+		header('Content-Type: application/octet-stream');
+		header('Content-Disposition: attachment; filename='.basename($name));
+		header('Content-Transfer-Encoding: binary');
+		header('Expires: 0');
+		header('Cache-Control: must-revalidate');
+		header('Pragma: public');
+		header('Content-Length: ' . filesize($full_path));
+		ob_clean();
+		flush();
+		readfile($full_path);
+		exit;
 	}
 }
 

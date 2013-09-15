@@ -50,13 +50,13 @@ class Files_model extends CI_Model
     }
 
     /**
-     * Retrieves all files with an associated account
+     * Retrieves all active files with an associated account
      *
      * @param account_id Account ID to use as the owner_id in the files table
      * @return Array of file objects with fields that match the database
      */
     function getFilesByOwner($account_id) {
-    	$query = $this->db->get_where('files', array('owner_id' => $account_id));
+    	$query = $this->db->get_where('files', array('owner_id' => $account_id, 'deleted' => FALSE));
     	return $query->result();
     }
 

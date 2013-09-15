@@ -10,7 +10,7 @@
 	<div id="account-tab">
 		<span style="font-weight: bold">Account Info</span><br />
 		<span>Email:</span> <?=$account->email?><br />
-		<span>Member Since:</span> <?=unix_to_human($account->date_joined)?> GMT<br />
+		<span>Member Since:</span> <?=mdate('%m/%d/%y, %H:%i', $account->date_joined)?> GMT<br />
 		<br />
 		
 		<span style="font-weight: bold">Change Password</span><br />

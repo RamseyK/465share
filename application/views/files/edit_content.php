@@ -1,4 +1,4 @@
-<h2>Edit File: <?=$file->orig_name?></h2><br />
+<h2>File: <?=$file->orig_name?></h2><br />
 
 <div id="modify_tabs">
 	<ul>
@@ -12,3 +12,5 @@
 		<span style="font-weight: bold">Permissions</span><br /><br />
 	</div>
 </div>
+<br />
+<?=anchor('files/download/'.$file->file_pk, 'Download', array('id' => 'download_link'))?>
