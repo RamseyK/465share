@@ -1,5 +1,12 @@
 465share
+Terry Bishop, Ramsey Kant, Christopher Silvia, Justin Vigil, Christopher Walmsley, Jack Workman
+
+https://github.com/RamseyK/465share
+Live Demo: http://465share.com
 
 A sample file sharing web application built with CodeIgniter 2.1.4
 
 Prerequisites: Apache 2.2+, MySQL 5.5+, PHP 5.4+
+
+License:
+See license.txt

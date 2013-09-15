@@ -69,7 +69,7 @@ if(isset($content)) echo $content;
 <?php if(isset($widgets)) echo $widgets ?>
 </div>
 
-<div id="footer"><p><center>(C) 2013 - CSE465 Group Names Here - Live Demo of <a href="https://github.com/RamseyK/465share">Github project.</a></center></p></div>
+<div id="footer"><p><center>(C) 2013 - CSE465 Group 1: Terry Bishop, Ramsey Kant, Christopher Silvia, Justin Vigil, Christopher Walmsley, Jack Workman - Live Demo of <a href="https://github.com/RamseyK/465share">Github project.</a></center></p></div>
 
 </div> <!-- end container -->
 </body>
