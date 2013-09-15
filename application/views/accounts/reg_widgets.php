@@ -4,7 +4,7 @@
 	<ul>
 		<li>Download files</li>
 		<li>Share files with trusted contacts</li>
-		<li>Participate in a vibrant community of 5 people!</li>
+		<li>Participate in a vibrant community of 6 people!</li>
 	</ul>
 </div>
 

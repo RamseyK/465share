@@ -1,5 +1,4 @@
-<h2>Limitations</h2><br />
-
+<h2>Limitations</h2>
 <div class="ui-widget-content ui-corner-all">
 	<ul>
 		<li>Max Size: 10MB</li>
