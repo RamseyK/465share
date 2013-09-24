@@ -162,7 +162,7 @@ class Files extends CI_Controller
 
 		$this->output->set_header('Content-Description: File Transfer');
 		$this->output->set_header('Content-Type: application/octet-stream');
-		$this->output->set_header('Content-Disposition: attachment; filename='.$file->name));
+		$this->output->set_header('Content-Disposition: attachment; filename='.$file->name);
 		$this->output->set_header('Content-Transfer-Encoding: binary');
 		$this->output->set_header('Expires: 0');
 		$this->output->set_header('Cache-Control: must-revalidate');
