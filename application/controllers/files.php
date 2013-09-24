@@ -123,7 +123,7 @@ class Files extends CI_Controller
 			redirect('files');
 			return;
 		}
-		if($page_data['file']->deleted || (get_file_info('./uploads/'.$file->name) === FALSE)) {
+		if($page_data['file']->deleted || (get_file_info('./uploads/'.$page_data['file']->name) === FALSE)) {
 			$this->session->set_flashdata('error_message', 'The file you were trying to access has either been deleted or is marked for deletion');
 			redirect('files');
 			return;
