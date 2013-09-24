@@ -113,6 +113,8 @@ class Files extends CI_Controller
 		if(!$this->Accounts_model->checkLogin())
 			return;
 
+		$this->load->helper('file');
+
 		// Get file info from the DB. Verify it exists and hasnt been deleted
 		$page_data['file'] = $this->Files_model->getFileInfo($file_id);
 
@@ -121,7 +123,7 @@ class Files extends CI_Controller
 			redirect('files');
 			return;
 		}
-		if($page_data['file']->deleted || !file_exists($page_data['file']->full_path)) {
+		if($page_data['file']->deleted || (get_file_info('./uploads/'.$file->name) === FALSE)) {
 			$this->session->set_flashdata('error_message', 'The file you were trying to access has either been deleted or is marked for deletion');
 			redirect('files');
 			return;
@@ -158,21 +160,18 @@ class Files extends CI_Controller
 	}
 
 	private function _sendDownload($file) {
-		$this->load->helper('file');
+		$rel_path = './uploads/'.$file->name;
 
 		$this->output->set_header('Content-Description: File Transfer');
 		$this->output->set_header('Content-Type: application/octet-stream');
-		$this->output->set_header('Content-Disposition: attachment; filename='.$file->name);
+		$this->output->set_header('Content-Disposition: attachment; filename='.$file->orig_name);
 		$this->output->set_header('Content-Transfer-Encoding: binary');
 		$this->output->set_header('Expires: 0');
 		$this->output->set_header('Cache-Control: must-revalidate');
 		$this->output->set_header('Pragma: public');
-		$this->output->set_header('Content-Length: ' . filesize($file->full_path));
-		/*ob_clean();
-		flush();
-		readfile($full_path);
-		exit;*/
-		$this->output->set_output(read_file('./uploads/'.$file->name));
+		$this->output->set_header('Content-Length: ' . get_file_info($rel_path, 'size'));
+
+		$this->output->set_output(read_file($rel_path); // Path is relative to main site index.php
 	}
 }
 
