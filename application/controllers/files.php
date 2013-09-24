@@ -161,6 +161,7 @@ class Files extends CI_Controller
 
 	private function _sendDownload($file) {
 		$rel_path = './uploads/'.$file->name;
+		$file_info = get_file_info($rel_path);
 
 		$this->output->set_header('Content-Description: File Transfer');
 		$this->output->set_header('Content-Type: application/octet-stream');
@@ -169,7 +170,7 @@ class Files extends CI_Controller
 		$this->output->set_header('Expires: 0');
 		$this->output->set_header('Cache-Control: must-revalidate');
 		$this->output->set_header('Pragma: public');
-		$this->output->set_header('Content-Length: ' . get_file_info($rel_path, 'size'));
+		$this->output->set_header('Content-Length: ' . $file_info['size']);
 
 		$this->output->set_output(read_file($rel_path)); // Path is relative to main site index.php
 	}
