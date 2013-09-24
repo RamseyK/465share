@@ -5,6 +5,8 @@
 	<span style="font-weight: bold">Name:</span> <?=$file->orig_name?><br />
 	<span style="font-weight: bold">Type:</span> <?=$file->type?><br />
 	<span style="font-weight: bold">Size:</span> <?=$file->size_kb?> KB<br />
+	<span style="font-weight: bold">Uploaded On:</span> <?=mdate('%m/%d/%y, %H:%i', $file->date_added)?> GMT<br />
+	<span style="font-weight: bold">Uploaded By:</span> <?=$file->owner_id?><br />
 	<br />
 	<?=form_open('files/download/'.$file->file_pk)?>
 	<input id="download_button" type="submit" name="download_submit" value="Download" />

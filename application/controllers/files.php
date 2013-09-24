@@ -137,7 +137,7 @@ class Files extends CI_Controller
 
 		if($this->input->post('download_submit')) {
 			// Download button pressed, send the file to the client
-			$this->_sendDownload($page_data['file']->orig_name, $page_data['file']->full_path);
+			$this->_sendDownload($page_data['file']);
 		} else {
 			// Show Download page
 			// Load template components (all are optional)
@@ -157,19 +157,22 @@ class Files extends CI_Controller
 		}
 	}
 
-	private function _sendDownload($name, $full_path) {
-		header('Content-Description: File Transfer');
-		header('Content-Type: application/octet-stream');
-		header('Content-Disposition: attachment; filename='.basename($name));
-		header('Content-Transfer-Encoding: binary');
-		header('Expires: 0');
-		header('Cache-Control: must-revalidate');
-		header('Pragma: public');
-		header('Content-Length: ' . filesize($full_path));
-		ob_clean();
+	private function _sendDownload($file) {
+		$this->load->helper('file');
+
+		$this->output->set_header('Content-Description: File Transfer');
+		$this->output->set_header('Content-Type: application/octet-stream');
+		$this->output->set_header('Content-Disposition: attachment; filename='.$file->name));
+		$this->output->set_header('Content-Transfer-Encoding: binary');
+		$this->output->set_header('Expires: 0');
+		$this->output->set_header('Cache-Control: must-revalidate');
+		$this->output->set_header('Pragma: public');
+		$this->output->set_header('Content-Length: ' . filesize($file->$full_path));
+		/*ob_clean();
 		flush();
 		readfile($full_path);
-		exit;
+		exit;*/
+		$this->output->set_output(read_file('./uploads/'.$file->name));
 	}
 }
 
