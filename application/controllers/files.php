@@ -167,7 +167,7 @@ class Files extends CI_Controller
 		$this->output->set_header('Expires: 0');
 		$this->output->set_header('Cache-Control: must-revalidate');
 		$this->output->set_header('Pragma: public');
-		$this->output->set_header('Content-Length: ' . filesize($file->$full_path));
+		$this->output->set_header('Content-Length: ' . filesize($file->full_path));
 		/*ob_clean();
 		flush();
 		readfile($full_path);
