@@ -79,29 +79,32 @@ class Files extends CI_Controller
 			return;
 
 		// Get file info from the DB. Verify it exists and hasnt been deleted
-		$page_data['file'] = $this->Files_model->getFileInfo($file_id);
+		$file = $this->Files_model->getFileInfo($file_id);
 
-		if($page_data['file'] == NULL) {
+		if($file == NULL) {
 			$this->session->set_flashdata('error_message', 'The file (id = ' . $file_id . ') you were trying to access does not exist');
 			redirect('files');
 			return;
 		}
-		if($page_data['file']->deleted || !file_exists($page_data['file']->full_path)) {
-			$this->session->set_flashdata('error_message', 'The file you were trying to access has either been deleted or is marked for deletion');
+		if($file->deleted || !file_exists($file->full_path)) {
+			$this->session->set_flashdata('error_message', 'The file you were trying to access has been deleted or the data does not exist on the server');
 			redirect('files');
 			return;
 		}
 
-		/*// Account must have write access
-		if(!$this->Files_model->hasAccess($this->session->userdata('account_id'), $file_id, 'WRITE')) {
+		// Account must have write access
+		$perm = $this->Files_model->getFilePermissions($file_id, $this->session->userdata('account_id'));
+		if($perm->write == FALSE) {
 			$this->session->set_flashdata('error_message', 'Access Denied. You do not have WRITE access for that file');
 			redirect('files');
 			return;
-		}*/
+		}
+
+		$view_data['file'] = $file;
 
 		// Load template components (all are optional)
 		$page_data['js'] = $this->load->view('files/edit_js', NULL, true);
-		$page_data['content'] = $this->load->view('files/edit_content', $page_data, true);
+		$page_data['content'] = $this->load->view('files/edit_content', $view_data, true);
 		$page_data['widgets'] = $this->load->view('files/edit_widgets', NULL, true);
 		
 		// Send page data to the site_main and have it rendered
@@ -116,35 +119,39 @@ class Files extends CI_Controller
 		$this->load->helper('file');
 
 		// Get file info from the DB. Verify it exists and hasnt been deleted
-		$page_data['file'] = $this->Files_model->getFileInfo($file_id);
+		$file = $this->Files_model->getFileInfo($file_id);
+		$rel_path = './uploads/' . $file->name;
 
-		if($page_data['file'] == NULL) {
+		if($file == NULL) {
 			$this->session->set_flashdata('error_message', 'The file (id = ' . $file_id . ') you were trying to access does not exist');
 			redirect('files');
 			return;
 		}
-		if($page_data['file']->deleted || (get_file_info('./uploads/'.$page_data['file']->name) === FALSE)) {
-			$this->session->set_flashdata('error_message', 'The file you were trying to access has either been deleted or is marked for deletion');
+		if($file->deleted || (get_file_info($rel_path) === FALSE)) {
+			$this->session->set_flashdata('error_message', 'The file you were trying to access has been deleted or the data does not exist on the server');
 			redirect('files');
 			return;
 		}
 
-		/*// Account must have read access
-		// additional accesses should be checked/included here. ex: "READ/ASUID"
-		if(!$this->Files_model->hasAccess($this->session->userdata('account_id'), $file_id, 'READ')) {
+		// Account must have read access
+		$perm = $this->Files_model->getFilePermissions($file_id, $this->session->userdata('account_id'));
+		if($perm->read == FALSE) {
 			$this->session->set_flashdata('error_message', 'Access Denied. You do not have READ access for that file');
 			redirect('files');
 			return;
-		}*/
+		}
+
+		$view_data['file'] = $file;
 
 		if($this->input->post('download_submit')) {
 			// Download button pressed, send the file to the client
-			$this->_sendDownload($page_data['file']);
+			$this->load->helper('download');
+			force_download($file->orig_name, read_file($rel_path));
 		} else {
 			// Show Download page
 			// Load template components (all are optional)
 			$page_data['js'] = $this->load->view('files/download_js', NULL, true);
-			$page_data['content'] = $this->load->view('files/download_content', $page_data, true);
+			$page_data['content'] = $this->load->view('files/download_content', $view_data, true);
 			$page_data['widgets'] = $this->load->view('files/download_widgets', NULL, true);
 			
 			// Send page data to the site_main and have it rendered
@@ -157,22 +164,6 @@ class Files extends CI_Controller
 			redirect('');
 			return;
 		}
-	}
-
-	private function _sendDownload($file) {
-		$rel_path = './uploads/'.$file->name;
-		$file_info = get_file_info($rel_path);
-
-		$this->output->set_header('Content-Description: File Transfer');
-		$this->output->set_header('Content-Type: application/octet-stream');
-		$this->output->set_header('Content-Disposition: attachment; filename='.$file->orig_name);
-		$this->output->set_header('Content-Transfer-Encoding: binary');
-		$this->output->set_header('Expires: 0');
-		$this->output->set_header('Cache-Control: must-revalidate');
-		$this->output->set_header('Pragma: public');
-		$this->output->set_header('Content-Length: ' . $file_info['size']);
-
-		$this->output->set_output(read_file($rel_path)); // Path is relative to main site index.php
 	}
 }
 

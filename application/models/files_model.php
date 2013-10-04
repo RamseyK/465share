@@ -14,6 +14,8 @@ class Files_model extends CI_Model
      * @return New file ID, 0 otherwise
      */
 	function addFile($account_id, $file) {
+        $file_id = 0;
+
 		// Insert file information to the database
 		$info = array(
 			'name'			=> $file['file_name'],
@@ -24,15 +26,18 @@ class Files_model extends CI_Model
 			'size_kb'		=> $file['file_size'],
 			'date_added'	=> now(),
 			'deleted'		=> FALSE,
-			'owner_id'		=> $account_id
 		);
 		$this->db->insert('files', $info);
 		
-		// File was successfully added to the DB
 		if($this->db->affected_rows() == 1)
-			return $this->db->insert_id();
+			$file_id = $this->db->insert_id(); // Successfully added
+        else
+            return 0; // Failed
 
-		return 0;
+        // Insert all accesss permission information for the owner
+        $this->Files_model->updateFilePermissions($file_id, $account_id, TRUE, TRUE, TRUE);
+
+		return $file_id;
 	}
 
     /**
@@ -50,34 +55,61 @@ class Files_model extends CI_Model
     }
 
     /**
-     * Retrieves all active files with an associated account
-     *
-     * @param account_id Account ID to use as the owner_id in the files table
-     * @return Array of file objects with fields that match the database
+     * Returns the file_permission row for a file / account pair
      */
-    function getFilesByOwner($account_id) {
-    	$query = $this->db->get_where('files', array('owner_id' => $account_id, 'deleted' => FALSE));
-    	return $query->result();
+    function getFilePermissions($file_id, $account_id) {
+        $query = $this->db->get_where('file_permissions', array('file_id' => $file_id, 'account_id' => $account_id), 1, 0);
+        if($query->num_rows() > 0)
+            return $query->row();
+        else
+            return NULL;
     }
 
     /**
-     * Determines if an account has a certain access for a file
-     *
-     * @param account_id Account ID to check against the ACL
-     * @param access ACL attribute to check against
-     * @return TRUE if the account has the desired access
+     * Adds or updates file permissions for a file / account pair
      */
-    function hasAccess($account_id, $file_id, $access) {
-    	// Get info about the requested file
-    	$file = $this->Files_model->getFileInfo($file_id);
-    	if($file == NULL)
-    		return FALSE;
+    function updateFilePermissions($file_id, $account_id, $read, $write, $owner) {
+        $perm = $this->Files_model->getFilePermissions($file_id, $account_id);
+        
+        if($perm == NULL) {
+            // Doesnt exist, add permission to the DB
+            $data = array(
+                'file_id'       => $file_id,
+                'account_id'    => $account_id,
+                'read'          => TRUE,
+                'write'         => TRUE,
+                'owner'         => TRUE
+            );
+            $this->db->insert('file_permissions', $data);
+        } else {
+            // Update the permissions
+            $data = array(
+                'read'          => $read,
+                'write'         => $write,
+                'owner'         => $owner
+            );
+            $this->db->where('file_id', $file_id);
+            $this->db->where('account_id', $account_id);
+            $this->db->update('file_permissions', $data);
+        }
+    }
 
-    	// Owner always has any access requested
-    	if($file->owner_id == $account_id)
-    		return TRUE;
+    /**
+     * Retrieves all active files with an associated account
+     *
+     * @param account_id Account ID to search for in the file_permissions table as the owner
+     * @return Array of file objects with fields that match the database
+     */
+    function getFilesByOwner($account_id) {
+        $this->db->from('files');
+        $this->db->where('files.deleted', FALSE);
 
-    	// Access not found, default to no access
-    	return FALSE;
+        $this->db->join('file_permissions as fp', 'files.file_pk = fp.file_id');
+        $this->db->where('fp.account_id', $account_id);
+        $this->db->where('fp.owner', TRUE);
+
+        $this->db->select('files.*');
+    	$query = $this->db->get();
+    	return $query->result();
     }
 }
