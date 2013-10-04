@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>465share</title>
+		<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="description" content="465share is a test file sharing web application" /> 
+		<link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+	
+		<!-- Style Sheets -->
+		<link rel="stylesheet" type="text/css" href="http://465share.com/css/main.css">
+		<link rel="stylesheet" type="text/css" href="http://465share.com/css/jquery-ui-1.10.3.custom.css">
+	
+		<!-- standard jquery, jquery plugins, and universal javascript -->
+		<script src="http://465share.com/js/jquery-1.9.1.js"></script>
+		<script src="http://465share.com/js/jquery-ui-1.10.3.custom.js"></script>
+	</head>
+	<body>
+	
+	<div id="container">
+	
+		<div id="header">
+			Logo Here<br />
+			<h1>465share.com</h1>
+			  
+			<div id="navlinks" align="right">
+				<a href="http://465share.com/index.php">Home</a>		<a href="http://465share.com/index.php/files">Files</a>		<a href="http://465share.com/index.php/accounts">Account</a>		<a href="mailto:rkant@asu.edu?subject=465share.com Support">Contact</a>	</div>
+		</div>
+			<div id="center">
+				<h2>Login</h2>
+				<div class="ui-widget-content ui-corner-all">
+					<form action="http://465share.com/index.php/accounts/login" method="post" accept-charset="utf-8">
+						<div style="display:none">
+							<input type="hidden" name="csrf_token_465share" value="58ea461a027366c4055df3d2a920b505" />
+						</div>
+						<div align="center">
+							<br />
+							<span style="margin: 0px 5px 0px 1px; float: center">Username</span>
+							<input type="text" name="email" value=""  />
+							<br />
+							<span style="margin: 0 5px 0 5px; float: center">Password</span>
+							<input type="password" name="password" value=""  />
+							<br />
+							<br />
+							<a href="http://465share.com/index.php/accounts/showLogin" id="register_link">Register</a>
+							<input type="submit" name="login" value="Login" id="login"  />
+						</div>
+					</form>
+					<div align="center">
+					<a href="http://465share.com/index.php/accounts/resetpw">Forgot Password</a>
+					<br />
+					</div>
+					<script>
+						$(function() {
+							$( "#register_link" ).button();
+							$( "#login" ).button();
+						});
+					</script>
+				</div>
+			<br />
+			</div>
+		
+		<div id="footer">
+			<p>
+				<div align="center">(C) 2013 - CSE465 Group 1: Terry Bishop, Ramsey Kant, Christopher Silvia, Justin Vigil, Christopher Walmsley, Jack Workman - Live Demo of <a href="https://github.com/RamseyK/465share">Github project.</a></div>
+			</p>
+		</div>
+	</div> <!-- end container -->
+	</body>
+</html>
