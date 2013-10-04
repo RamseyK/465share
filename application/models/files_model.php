@@ -36,7 +36,7 @@ class Files_model extends CI_Model
             return 0; // Failed
 
         // Insert all accesss permission information for the owner
-        $this->Files_model->addFilePermission($file_id, $account_id, TRUE, TRUE, TRUE);
+        $this->Files_model->addFilePermission($file_id, $account_id, TRUE, TRUE);
 
 		return $file_id;
 	}
@@ -77,10 +77,9 @@ class Files_model extends CI_Model
      * @param account_id Associated account id
      * @param read Read allowed (boolean)
      * @param write Write allowed (boolean)
-     * @param owner Is the associated account_id the files owner (boolean)
      * @return TRUE if successful. FALSE otherwise
      */
-    function addFilePermission($file_id, $account_id, $read, $write, $owner) {
+    function addFilePermission($file_id, $account_id, $read, $write) {
         $perm = $this->Files_model->getFilePermissions($file_id, $account_id);
         
         if($perm == NULL) {
@@ -89,8 +88,7 @@ class Files_model extends CI_Model
                 'file_id'       => $file_id,
                 'account_id'    => $account_id,
                 'read'          => $read,
-                'write'         => $write,
-                'owner'         => $owner
+                'write'         => $write
             );
             $this->db->insert('file_permissions', $data);
 
@@ -98,7 +96,7 @@ class Files_model extends CI_Model
                 return TRUE;
         } else {
             // Already exists, update the file permissions
-            return $this->Files_model->updateFilePermission($file_id, $account_id, $read, $write, $owner);
+            return $this->Files_model->updateFilePermission($file_id, $account_id, $read, $write);
         }
     }
 
@@ -109,15 +107,13 @@ class Files_model extends CI_Model
      * @param account_id Associated account id
      * @param read Read allowed (boolean)
      * @param write Write allowed (boolean)
-     * @param owner Is the associated account_id the files owner (boolean)
      * @return TRUE if successful. FALSE otherwise
      */
-    function updateFilePermission($file_id, $account_id, $read, $write, $owner) {
+    function updateFilePermission($file_id, $account_id, $read, $write) {
         // Update the permissions
         $data = array(
             'read'          => $read,
-            'write'         => $write,
-            'owner'         => $owner
+            'write'         => $write
         );
         $this->db->where('file_id', $file_id);
         $this->db->where('account_id', $account_id);
