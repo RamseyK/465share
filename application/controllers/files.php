@@ -94,7 +94,7 @@ class Files extends CI_Controller
 
 		// Account must have write access
 		$perm = $this->Files_model->getFilePermissions($file_id, $this->session->userdata('account_id'));
-		if($perm->write == FALSE) {
+		if($perm != NULL && $perm->write == FALSE) {
 			$this->session->set_flashdata('error_message', 'Access Denied. You do not have WRITE access for that file');
 			redirect('files');
 			return;
@@ -135,7 +135,7 @@ class Files extends CI_Controller
 
 		// Account must have read access
 		$perm = $this->Files_model->getFilePermissions($file_id, $this->session->userdata('account_id'));
-		if($perm->read == FALSE) {
+		if($perm != NULL && $perm->read == FALSE) {
 			$this->session->set_flashdata('error_message', 'Access Denied. You do not have READ access for that file');
 			redirect('files');
 			return;

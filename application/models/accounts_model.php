@@ -11,8 +11,8 @@ class Accounts_model extends CI_Model
 	/**
 	 * Check a email / password combo against the DB and setup session data
 	 *
-	 * @param $email Email of the user
-	 * @param $password Plain text password submitted by the user
+	 * @param email Email of the user
+	 * @param password Plain text password submitted by the user
 	 * @return true if login is successful
 	 */
 	function doAccountLogin($email, $password)
