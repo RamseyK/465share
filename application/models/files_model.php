@@ -35,7 +35,7 @@ class Files_model extends CI_Model
         else
             return 0; // Failed
 
-        // Insert all accesss permission information for the owner
+        // Insert read/write permissions for the owner
         $this->Files_model->addFilePermission($file_id, $account_id, TRUE, TRUE);
 
 		return $file_id;
@@ -142,21 +142,13 @@ class Files_model extends CI_Model
     }
 
     /**
-     * Retrieves all active files with an associated account
+     * Retrieves all active files with an associated owner_account_id
      *
-     * @param account_id Account ID to search for in the file_permissions table as the owner
+     * @param account_id Account ID to match to the owner_account_id
      * @return Array of file objects with fields that match the database
      */
     function getFilesByOwner($account_id) {
-        $this->db->from('files');
-        $this->db->where('files.deleted', FALSE);
-
-        $this->db->join('file_permissions as fp', 'files.file_pk = fp.file_id');
-        $this->db->where('fp.account_id', $account_id);
-        $this->db->where('fp.owner', TRUE);
-
-        $this->db->select('files.*');
-    	$query = $this->db->get();
+        $query = $this->db->get_where('files', array('owner_account_id', $account_id))
     	return $query->result();
     }
 }
