@@ -36,7 +36,7 @@ class Files_model extends CI_Model
             return 0; // Failed
 
         // Insert read/write permissions for the owner
-        $this->Files_model->addFilePermission($file_id, $account_id, TRUE, TRUE);
+        $this->Files_model->addPermission($file_id, $account_id, TRUE, TRUE);
 
 		return $file_id;
 	}
@@ -56,13 +56,13 @@ class Files_model extends CI_Model
     }
 
     /**
-     * Returns the file_permission attributes (read/write/owner) row for a particular file / account pair
+     * Returns the file_permission attributes (read/write) row for a particular file / account pair
      *
      * @param file_id File ID to look up permissions for
      * @param account_id Associated account id to lookup permissions for
      * @return If found, file_permission attributes for the file/account pair. NULL if not found
      */
-    function getFilePermissions($file_id, $account_id) {
+    function getPermission($file_id, $account_id) {
         $query = $this->db->get_where('file_permissions', array('file_id' => $file_id, 'account_id' => $account_id), 1, 0);
         if($query->num_rows() > 0)
             return $query->row();
@@ -79,8 +79,8 @@ class Files_model extends CI_Model
      * @param write Write allowed (boolean)
      * @return TRUE if successful. FALSE otherwise
      */
-    function addFilePermission($file_id, $account_id, $read, $write) {
-        $perm = $this->Files_model->getFilePermissions($file_id, $account_id);
+    function addPermission($file_id, $account_id, $read, $write) {
+        $perm = $this->Files_model->getPermission($file_id, $account_id);
         
         if($perm == NULL) {
             // Doesnt exist, add permission to the DB
@@ -96,7 +96,7 @@ class Files_model extends CI_Model
                 return TRUE;
         } else {
             // Already exists, update the file permissions
-            return $this->Files_model->updateFilePermission($file_id, $account_id, $read, $write);
+            return $this->Files_model->updatePermission($file_id, $account_id, $read, $write);
         }
     }
 
@@ -109,7 +109,7 @@ class Files_model extends CI_Model
      * @param write Write allowed (boolean)
      * @return TRUE if successful. FALSE otherwise
      */
-    function updateFilePermission($file_id, $account_id, $read, $write) {
+    function updatePermission($file_id, $account_id, $read, $write) {
         // Update the permissions
         $data = array(
             'read'          => $read,
@@ -132,7 +132,7 @@ class Files_model extends CI_Model
      * @param account_id Associated account id
      * @return TRUE if successful. FALSE otherwise
      */
-    function deleteFilePermission($file_id, $account_id) {
+    function deletePermission($file_id, $account_id) {
         $this->db->delete('file_permissions', array('file_id' => $file_id, 'account_id' => $account_id));
 
         if($this->db->affected_rows() == 1)
@@ -148,7 +148,7 @@ class Files_model extends CI_Model
      * @return Array of file objects with fields that match the database
      */
     function getFilesByOwner($account_id) {
-        $query = $this->db->get_where('files', array('owner_account_id', $account_id))
+        $query = $this->db->get_where('files', array('owner_account_id' => $account_id));
     	return $query->result();
     }
 }

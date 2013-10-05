@@ -28,18 +28,5 @@ $(function() {
 		sortList: [[0,1]]
 	});
 	<?php } ?>
-
-	<?php if(!empty($sharedby_files)) { ?>
-	$("#sharedby_table").tablesorter({
-		headers: {
-			// Disable sorting in the last column (the arrows)
-			4: {
-				sorter: false
-			}
-		},
-		// Sort by date
-		sortList: [[0,1]]
-	});
-	<?php } ?>
 });
 </script>

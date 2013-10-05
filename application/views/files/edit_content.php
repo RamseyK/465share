@@ -14,7 +14,12 @@
 		<span style="font-weight: bold">Uploaded By:</span> ?<br />
 	</div>
 	<div id="permissions-tab">
-		<span style="font-weight: bold">Permissions</span><br /><br />
+		<span style="font-weight: bold">Individual Permissions</span><br /><br />
+		<p>Grant read/write access to individual accounts</p>
+
+		<br /><br />
+		<span style="font-weight: bold">Group Membership</span><br /><br />
+		<p>Grant read AND write access to all accounts in the following groups</p>
 	</div>
 </div>
 <br />

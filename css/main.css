@@ -17,6 +17,10 @@ a{
 	color: #981793;
 }
 
+h2{
+	margin-top: -5px;
+}
+
 div#header {
 	background: #333;
 	color: #FFF;

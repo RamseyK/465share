@@ -9,6 +9,7 @@ class Files extends CI_Controller
 		parent::__construct();
 
 		$this->load->model('Files_model');
+		$this->load->model('Groups_model');
 		$this->load->library('upload');
 	}
 	
@@ -20,7 +21,6 @@ class Files extends CI_Controller
 		// Pull file data for all tabs
 		$page_data['uploaded_files'] = $this->Files_model->getFilesByOwner($this->session->userdata('account_id'));
 		$page_data['sharedwith_files'] = array();
-		$page_data['sharedby_files'] = array();
 
 		// Load template components (all are optional)
 		$page_data['js'] = $this->load->view('files/index_js', $page_data, true);
@@ -78,6 +78,8 @@ class Files extends CI_Controller
 		if(!$this->Accounts_model->checkLogin())
 			return;
 
+		$account_id = $this->session->userdata('account_id');
+
 		// Get file info from the DB. Verify it exists and hasnt been deleted
 		$file = $this->Files_model->getFileInfo($file_id);
 
@@ -92,14 +94,31 @@ class Files extends CI_Controller
 			return;
 		}
 
-		// Account must have write access
-		$perm = $this->Files_model->getFilePermissions($file_id, $this->session->userdata('account_id'));
-		if($perm != NULL && $perm->write == FALSE) {
-			$this->session->set_flashdata('error_message', 'Access Denied. You do not have WRITE access for that file');
+		// Account or a group the account belongs to must have write access
+		$allowed = FALSE;
+
+		// Get file/account permission pair
+		$acct_perm = $this->Files_model->getPermission($file_id, $account_id);
+		if($acct_perm != NULL && $acct_perm->write == TRUE)
+			$allowed = TRUE;
+
+		// Check group accesses for the file and the membership of the account
+		$groups = $this->Groups_model->getFileGroupAccesses($file_id);
+		foreach($groups as $group) {
+			if($this->Groups_model->hasGroupMembership($group->group_id, $account_id)) {
+				$allowed = TRUE;
+				break;
+			}
+		}
+
+		if(!$allowed) {
+			$this->session->set_flashdata('error_message', 'Access Denied. You, or any groups you are a member of, do not have WRITE access for that file');
 			redirect('files');
 			return;
 		}
 
+		$view_data['account_permissions'] = $this->Files_model->getAllPermissions($file_id);
+		$view_data['group_accesses'] = $groups;
 		$view_data['file'] = $file;
 
 		// Load template components (all are optional)
@@ -115,6 +134,8 @@ class Files extends CI_Controller
 		// Visitor must be logged in
 		if(!$this->Accounts_model->checkLogin())
 			return;
+
+		$account_id = $this->session->userdata('account_id');
 
 		$this->load->helper('file');
 
@@ -133,10 +154,25 @@ class Files extends CI_Controller
 			return;
 		}
 
-		// Account must have read access
-		$perm = $this->Files_model->getFilePermissions($file_id, $this->session->userdata('account_id'));
-		if($perm != NULL && $perm->read == FALSE) {
-			$this->session->set_flashdata('error_message', 'Access Denied. You do not have READ access for that file');
+		// Account or a group the account belongs to must have read access
+		$allowed = FALSE;
+
+		// Get file/account permission pair
+		$acct_perm = $this->Files_model->getPermission($file_id, $account_id);
+		if($acct_perm != NULL && $acct_perm->read == TRUE)
+			$allowed = TRUE;
+
+		// Check group accesses for the file and the membership of the account
+		$groups = $this->Groups_model->getFileGroupAccesses($file_id);
+		foreach($groups as $group) {
+			if($this->Groups_model->hasGroupMembership($group->group_id, $account_id)) {
+				$allowed = TRUE;
+				break;
+			}
+		}
+
+		if(!$allowed) {
+			$this->session->set_flashdata('error_message', 'Access Denied. You, or any groups you are a member of, do not have READ access for that file');
 			redirect('files');
 			return;
 		}

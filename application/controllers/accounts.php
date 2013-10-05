@@ -168,7 +168,7 @@ class Accounts extends CI_Controller
 		$page_data['nocache'] = true;
 		$page_data['js'] = $this->load->view('accounts/manage_js', NULL, true);
 		$page_data['content'] = $this->load->view('accounts/manage_content', $data, true);
-		$page_data['widgets'] = $this->load->view('widgets/account_info', NULL, true);
+		$page_data['widgets'] = $this->load->view('accounts/manage_widgets', NULL, true);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);

@@ -1,12 +1,9 @@
+<h2>Account Management</h2>
 <div id="manage_tabs">
 	<ul>
-		<li><a href="#notification-tab">Notifications</a></li>
 		<li><a href="#account-tab">Account</a></li>
+		<li><a href="#group-tab">Groups</a></li>
 	</ul>
-	<div id="notification-tab">
-		<span style="font-weight: bold">Recently Shared with Me</span><br /><br />
-		<span style="font-weight: bold">Recently Uploaded</span><br /><br />
-	</div>
 	<div id="account-tab">
 		<span style="font-weight: bold">Account Info</span><br />
 		<span>Email:</span> <?=$account->email?><br />
@@ -22,5 +19,9 @@
 			<?=form_submit(array('id' => 'change_btn', 'name' => 'change'), 'Change')?>
 			<?=form_close()?>
 		</div>
+	</div>
+	<div id="group-tab">
+		<span style="font-weight: bold">Groups Memberships</span><br /><br />
+		<span style="font-weight: bold">My Groups</span><br /><br />
 	</div>
 </div>

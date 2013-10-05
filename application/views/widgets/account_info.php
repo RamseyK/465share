@@ -9,6 +9,7 @@ $(function() {
 });
 </script>
 </div>
+<br />
 
 <?php if($this->session->userdata('is_admin') == true) {?>
 <div class="ui-widget-content ui-corner-all">

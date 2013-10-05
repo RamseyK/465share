@@ -7,5 +7,5 @@
 		<li>Participate in a vibrant community of 6 people!</li>
 	</ul>
 </div>
-
+<br />
 <?=$this->load->view('widgets/login', NULL, true)?>
