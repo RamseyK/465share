@@ -15,7 +15,6 @@ class Groups_model extends CI_Model
      */
     function getFileGroupAccesses($file_id) {
     	$this->db->join('groups as g', 'g.group_pk = file_group_accesses.group_id');
-    	$this->db->select('groups.name as name, file_group_accesses.*');
         $query = $this->db->get_where('file_group_accesses', array('file_id' => $file_id));
         return $query->result();
     }

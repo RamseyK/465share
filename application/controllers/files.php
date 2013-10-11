@@ -117,7 +117,7 @@ class Files extends CI_Controller
 			return;
 		}
 
-		$view_data['account_permissions'] = $this->Files_model->getAllPermissions($file_id);
+		$view_data['account_permissions'] = NULL;//$this->Files_model->getAllPermissions($file_id);
 		$view_data['group_accesses'] = $groups;
 		$view_data['file'] = $file;
 
