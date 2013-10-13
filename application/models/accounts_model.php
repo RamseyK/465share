@@ -104,28 +104,25 @@ class Accounts_model extends CI_Model
 	/**
 	 * Attempts to add an account to the database
 	 *
-	 * @param $data is an array containing the fields: email, password
+	 * @param email Email address of the new account
+	 * @param password Password for the account
 	 * @return true if adding the account to the database was successful. False if otherwise
 	 */
-	function addAccount($data) {
+	function addAccount($email, $password) {
 		// Make sure the account email doesn't already exist
-        $res = $this->db->get_where('accounts', array('email' => $data['email']));
-        
-        // Account email already exists
-        if ($res->num_rows() != 0)
+        if ($this->Accounts_model->getAccountByEmail($email) != NULL)
             return FALSE;
-	
+		
 		// Generate salt for password
 		$salt = random_string('alnum', 16);
 		
 		// Insert account to the database
 		$account = array(
-			'email'              => $data['email'],
-			'password'              => md5(md5($data['password']) . $salt),
+			'email'              => $email,
+			'password'              => md5(md5($password) . $salt),
 			'salt'              	=> $salt,
 			'disabled'				=> FALSE,
 			'date_joined'			=> now()
-
 		);
 		$this->db->insert('accounts', $account);
 		
@@ -134,9 +131,9 @@ class Accounts_model extends CI_Model
 			// Send a welcome email
 			$this->load->library('email');
 			$this->email->from('noreply@465share.com', '465share.com');
-			$this->email->to($data['email']);
+			$this->email->to($email);
 			$this->email->subject('Welcome to 465share.com!');
-			$this->email->message('Welcome ' . $data['email'] . ' to 465share.com. You can now upload files!');
+			$this->email->message('Welcome ' . $email . ' to 465share.com. You can now upload files!');
 			$this->email->send(); // NOTE: This returns TRUE/FALSE depending if the email sent properly. We don't care if it failed so the return value isnt checked
 
 			// Indicate to the controller creation succeeded
@@ -173,15 +170,59 @@ class Accounts_model extends CI_Model
 	}
 	
 	/**
-	 * Reset password for a user account to a new random password
-	 *
+	 * Generates a new reset password token and sets the reset password expiration timestamp
+	 * Token link is then emailed to the user so they can reset their password before the expiration
+	 * 
 	 * @param $email Email of the user
 	 * @return TRUE if successful
 	 */
-	function resetPassword($email) {
+	function resetPasswordToken($email) {
 		// If the account doesnt exist, bail
 		$account = $this->Accounts_model->getAccountByEmail($email);
 		if($account == NULL)
+			return FALSE;
+		
+		// Update the accounts entry with the new token and expiration time
+		$token = random_string('alnum', 12);
+		$expire = now() + (60 * 60 * 4); // +4 hours from now
+        $data = array(
+            'reset_pw_token'          => $token,
+            'reset_pw_expire'         => $expire
+        );
+        $this->db->where('account_pk', $account->account_pk);
+        $this->db->update('accounts', $data);
+
+        if($this->db->affected_rows() != 1)
+            return FALSE;
+
+		// Send the reset password link to the user
+		$reset_link = site_url('accounts/resetpw_verify/'.$account->account_pk.'/'.$token);
+		$this->load->library('email');
+		$this->email->from('noreply@465share.com', '465share.com');
+		$this->email->to($email);
+		$this->email->subject('465share.com: Password Reset Link');
+		$this->email->message('A request to reset your password has been made on the website. If you did not make this request, please ignore this email. To reset your password, navigate to the following URL: ' . $reset_link);
+		if(!$this->email->send())
+			return FALSE;
+
+		return TRUE;
+	}
+
+	/**
+	 * Reset password for a user account to a new random password and email the user the new password if the reset password token and timestamp are valid
+	 *
+	 * @param account_id Account ID of the account being reset
+	 * @param token Token generated and emailed to the user by resetPasswordToken()
+	 * @return TRUE if successful, FALSE otherwise
+	 */
+	function resetPassword($account_id, $token) {
+		// If the account doesnt exist, bail
+		$account = $this->Accounts_model->getAccount($account_id);
+		if($account == NULL)
+			return FALSE;
+
+		// Fail if the token doesnt match or its expired
+		if((strcmp($token, $account->reset_pw_token) != 0) || (now() > $account->reset_pw_expire))
 			return FALSE;
 		
 		// Generate and send the password to the user
@@ -194,13 +235,21 @@ class Accounts_model extends CI_Model
 		if(!$this->email->send())
 			return FALSE;
 		
-		// Generate a new salt, calculate the new hash, and update the db
+		// Calculate the new hash and update the db
 		$salt = random_string('alnum', 16);
 		$new_hash = md5(md5($new_pass) . $salt);
+
+		$data = array(
+			'password'				  => $new_hash,
+			'salt'					  => $salt,
+            'reset_pw_token'          => NULL,
+            'reset_pw_expire'         => 0
+        );
 		$this->db->where('account_pk', $account->account_pk);
-		$this->db->update('accounts', array('password' => $new_hash, 'salt' => $salt));
+		$this->db->update('accounts', $data);
 		if($this->db->affected_rows() != 1)
 			return FALSE;
+
 		return TRUE;
 	}
 	

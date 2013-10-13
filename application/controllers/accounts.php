@@ -48,19 +48,18 @@ class Accounts extends CI_Controller
 				$this->session->set_flashdata('error_message', validation_errors());
 				redirect('accounts/showLogin');
 			} else {
+				$email = $this->input->post('reg_email');
+				$password = $this->input->post('reg_password');
+
 				// Add account to the database
-				$data = array(
-					'email' => $this->input->post('reg_email'),
-					'password' => $this->input->post('reg_password')
-					);
-				if(!$this->Accounts_model->addAccount($data)) {
-					$this->session->set_flashdata('error_message', 'Could not add account to database');
-				} else {
+				if($this->Accounts_model->addAccount($data)) {
 					// Log the account in and redirect to the management page
-					if($this->Accounts_model->doAccountLogin($data['email'],  $data['password'])) {
+					if($this->Accounts_model->doAccountLogin($email,  $password)) {
 						$this->session->set_flashdata('status_message', 'Welcome to 465share.com!');
 						redirect('accounts/manage');
 					}
+				} else {
+					$this->session->set_flashdata('error_message', 'Could not add account to database');
 				}
 			}
 		} else {
@@ -206,10 +205,10 @@ class Accounts extends CI_Controller
 		redirect('accounts/manage');
 	}
 	
-	/*
-	 * Password reset page and processing for user input if they request a password reset
+	/**
+	 * Password reset page that guides the user to generating a password reset link
 	 */
-	function resetpw() {
+	function resetpw($account_id = 0, $token = '') {
 		// If the account is already logged in and somehow ends up here, forward them to their profile
 		if ($this->Accounts_model->isLoggedIn()) {
 			redirect('accounts/manage');
@@ -221,16 +220,16 @@ class Accounts extends CI_Controller
 		$page_data['status_message'] = NULL;
 		
 		if($this->input->post('resetpw')) {
-			$this->form_validation->set_rules('email', 'Email', 'trim|required|min_length[3]|max_length[24]|valid_email|xss_clean|prep_for_form');
+			$this->form_validation->set_rules('email', 'Email', 'trim|required|min_length[3]|max_length[24]|valid_email|prep_for_form');
 			
 			if($this->form_validation->run() == FALSE) {
 				$page_data['error_message'] = validation_errors();
 			} else {
 				// Reset password processing
-				if($this->Accounts_model->resetPassword($this->input->post('email'))) {
-					$page_data['status_message'] = 'Password Reset! Check your email';
+				if($this->Accounts_model->resetPasswordToken($this->input->post('email'))) {
+					$page_data['status_message'] = 'A link to reset your password has been sent to ' . $this->input->post('email');
 				} else {
-					$page_data['error_message'] = 'Unable to reset the password for that account. Is the email valid?';
+					$page_data['error_message'] = 'Unable to generate a reset link for that account. Is the email valid?';
 				}
 			}
 		}
@@ -242,6 +241,30 @@ class Accounts extends CI_Controller
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);
+	}
+
+	/**
+	 * Password reset links are directed here
+	 * This function verifies the token and account_id pair with the database and redirects the user appropriately
+	 *
+	 * @param account_id Paired with the token
+	 * @param token If a token is set and its valid, a new password will be sent to the user
+	 */
+	function resetpw_verify($account_id, $token) {
+		// If the account is already logged in and somehow ends up here, forward them to their profile
+		if ($this->Accounts_model->isLoggedIn()) {
+			redirect('accounts/manage');
+			return;
+		}
+
+		// Attempt to reset the password with the provided token
+		if($this->Accounts_model->resetPassword($account_id, $token)) {
+			$this->session->set_flashdata('status_message', 'Your password has been reset. Check your email for the new password');
+			redirect('');
+		} else {
+			$this->session->set_flashdata('error_message', 'The password reset link is expired. Please attempt to reset your password again here');
+			redirect('accounts/resetpw');
+		}
 	}
 }
 
