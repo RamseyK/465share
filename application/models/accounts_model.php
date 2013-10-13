@@ -235,5 +235,21 @@ class Accounts_model extends CI_Model
 			
 		return NULL;
 	}
+
+	/**
+	 * Gets the email address of an account given the account ID
+	 * 
+	 * @param $id Account ID
+	 * @return A string containing the email if it was found, blank otherwise
+	 */
+	function getAccountEmail($id) {
+		$this->db->select('accounts.email');
+		$res = $this->db->get_where('accounts', array('account_pk' => $id), 1, 0);
+		
+		if($res->num_rows() == 1)
+			return $res->row()->email;
+		
+		return '';
+	}
 }
 ?>

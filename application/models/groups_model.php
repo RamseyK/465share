@@ -14,7 +14,8 @@ class Groups_model extends CI_Model
      * @return List of groups required to access the file. Empty = no group membership required
      */
     function getFileGroupAccesses($file_id) {
-    	$this->db->join('groups as g', 'g.group_pk = file_group_accesses.group_id');
+        $this->db->select('*');
+    	$this->db->join('groups', 'groups.group_pk = file_group_accesses.group_id');
         $query = $this->db->get_where('file_group_accesses', array('file_id' => $file_id));
         return $query->result();
     }

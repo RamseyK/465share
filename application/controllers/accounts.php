@@ -7,6 +7,8 @@ class Accounts extends CI_Controller
 {
 	public function __construct() {
 		parent::__construct();
+
+		$this->load->library('form_validation');
 	}
 
 	/**
@@ -34,14 +36,12 @@ class Accounts extends CI_Controller
 			return;
 		}
 		
-		$this->load->library('form_validation');
-		
 		// Check for registration POST data
 		if($this->input->post('register')) {
 			// Rules
-			$this->form_validation->set_rules('reg_email', 'Email', 'trim|required|min_length[3]|max_length[24]|valid_email|xss_clean|prep_for_form');
+			$this->form_validation->set_rules('reg_email', 'Email', 'trim|required|min_length[3]|max_length[24]|valid_email|prep_for_form');
 			$this->form_validation->set_rules('confirm_email', 'Email Confirmation', 'required|matches[reg_email]');
-			$this->form_validation->set_rules('reg_password', 'Password', 'trim|required|min_length[3]|max_length[24]|xss_clean|prep_for_form');
+			$this->form_validation->set_rules('reg_password', 'Password', 'trim|required|min_length[3]|max_length[24]|prep_for_form');
 			$this->form_validation->set_rules('confirm_password', 'Password Confirmation', 'required|matches[reg_password]');
 			
 			if($this->form_validation->run() == FALSE) {
@@ -105,8 +105,7 @@ class Accounts extends CI_Controller
 			redirect('accounts/showLogin');
 			return;
 		}
-			
-		$this->load->library('form_validation');
+
 	
 		// Various vars for tracking the evaluation
 		$result = false;
@@ -182,8 +181,6 @@ class Accounts extends CI_Controller
 		if(!$this->Accounts_model->checkLogin())
 			return;
 		
-		$this->load->library('form_validation');
-		
 		if($this->input->post('change')) {
 			// Setup the rules of our form
 			$this->form_validation->set_rules('old_password', 'Old Password', 'trim|required|min_length[3]|max_length[24]|xss_clean|prep_for_form');
@@ -218,8 +215,6 @@ class Accounts extends CI_Controller
 			redirect('accounts/manage');
 			return;
 		}
-		
-		$this->load->library('form_validation');
 		
 		// Message data
 		$page_data['error_message'] = NULL;

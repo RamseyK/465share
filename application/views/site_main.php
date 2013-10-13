@@ -40,22 +40,22 @@
 <div id="wrapper">
 <div id="content">
 <?php
-if($this->session->flashdata('status_message') || isset($status_message)) {
-	$msg = '';
-	if($this->session->flashdata('status_message'))
-		$msg = $this->session->flashdata('status_message');
+if($this->session->flashdata('error_message') || isset($error_message)) {
+	$error_msg = '';
+	if($this->session->flashdata('error_message'))
+		$error_msg = $this->session->flashdata('error_message');
 	else
-		$msg = $status_message;
-	echo '<div class="ui-widget"><div class="ui-state-highlight ui-corner-all" style="padding: 0 .7em;"><p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>'.$msg.'</p></div></div><br />';
+		$error_msg = $error_message;
+	echo '<div class="ui-widget"><div class="ui-state-error ui-corner-all" style="padding: 0 .7em;"><p><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span><strong>Error:</strong> '.$error_msg.'</p></div></div><br />';
 }
 
-if($this->session->flashdata('error_message') || isset($error_message)) {
-	$msg = '';
-	if($this->session->flashdata('error_message'))
-		$msg = $this->session->flashdata('error_message');
+if($this->session->flashdata('status_message') || isset($status_message)) {
+	$status_msg = '';
+	if($this->session->flashdata('status_message'))
+		$status_msg = $this->session->flashdata('status_message');
 	else
-		$msg = $error_message;
-	echo '<div class="ui-widget"><div class="ui-state-error ui-corner-all" style="padding: 0 .7em;"><p><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span><strong>Error:</strong> '.$msg.'</p></div></div><br />';
+		$status_msg = $status_message;
+	echo '<div class="ui-widget"><div class="ui-state-highlight ui-corner-all" style="padding: 0 .7em;"><p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>'.$status_msg.'</p></div></div><br />';
 }
 
 if(isset($content)) echo $content;

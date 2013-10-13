@@ -31,9 +31,9 @@ class Files_model extends CI_Model
 		$this->db->insert('files', $info);
 		
 		if($this->db->affected_rows() == 1)
-			$file_id = $this->db->insert_id(); // Successfully added
+			$file_id = $this->db->insert_id();
         else
-            return 0; // Failed
+            return 0;
 
         // Insert read/write permissions for the owner
         $this->Files_model->addPermission($file_id, $account_id, TRUE, TRUE);
@@ -71,7 +71,22 @@ class Files_model extends CI_Model
     }
 
     /**
-     * Creates or updates file permissions for a file/user pair if they dont exist
+     * Returns all file_permission attributes (read/write) row for a particular file
+     *
+     * @param file_id File ID to look up permissions for
+     * @return An array of file_permission rows. If none, an empty array
+     */
+    function getAllPermissions($file_id) {
+        $this->db->select('accounts.email as account_email, file_permissions.*');
+        $this->db->from('file_permissions');
+        $this->db->join('accounts', 'accounts.account_pk = file_permissions.account_id');
+        $this->db->where(array('file_id' => $file_id));
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    /**
+     * Creates file permissions for a file/user pair if they dont exist
      *
      * @param file_id File ID
      * @param account_id Associated account id
@@ -94,10 +109,9 @@ class Files_model extends CI_Model
 
             if($this->db->affected_rows() == 1)
                 return TRUE;
-        } else {
-            // Already exists, update the file permissions
-            return $this->Files_model->updatePermission($file_id, $account_id, $read, $write);
         }
+
+        return FALSE;
     }
 
     /**
@@ -110,6 +124,12 @@ class Files_model extends CI_Model
      * @return TRUE if successful. FALSE otherwise
      */
     function updatePermission($file_id, $account_id, $read, $write) {
+        // If read and write are being taken away, delete the row in the DB
+        if($read == FALSE && $write == FALSE) {
+            $this->Files_model->deletePermission($file_id, $account_id);
+            return TRUE;
+        }
+
         // Update the permissions
         $data = array(
             'read'          => $read,
