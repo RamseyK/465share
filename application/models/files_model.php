@@ -43,16 +43,54 @@ class Files_model extends CI_Model
 
     /**
      * Retrieves file info from the database based on the ID
+     * Ignores files marked as deleted or files that do not exist on the current server
      *
      * @param id File ID to use for looking up
      * @return File object with fields that match the database. NULL if not found
      */
-    function getFileInfo($id) {
-    	$query = $this->db->get_where('files', array('file_pk' => $id), 1, 0);
-    	if($query->num_rows() > 0)
+    function getFile($id) {
+    	$query = $this->db->get_where('files', array('file_pk' => $id, 'deleted' => FALSE), 1, 0);
+    	if($query->num_rows() > 0) {
+            $file = $query->row();
+
+            // File doesnt physically exist on server
+            if(!file_exists($file->full_path))
+                return NULL;
+
     		return $query->row();
+        }
     	else
     		return NULL;
+    }
+
+    /**
+     * Retrieves all active files with an associated owner_account_id
+     * Ignores files marked as deleted
+     *
+     * @param account_id Account ID to match to the owner_account_id
+     * @return Array of file objects. Empty if none
+     */
+    function getFilesByOwner($account_id) {
+        $query = $this->db->get_where('files', array('owner_account_id' => $account_id, 'deleted' => FALSE));
+        return $query->result();
+    }
+
+    /**
+     * Retrieve all files (joined with their permissions) that a particular account_id has a permission entry for, but that account isnt the owner
+     * Ignores files marked as deleted
+     *
+     * @param account_id Account ID to match to entries in file_permissions and that dont match the files owner_account_id
+     * @return Array of files shared with the account_id
+     */
+    function getFilesSharedWithAccount($account_id) {
+        $this->db->select('files.*, file_permissions.read, file_permissions.write');
+        $this->db->join('file_permissions', 'file_permissions.file_id = files.file_pk');
+        $this->db->where('files.owner_account_id !=', $account_id);
+        $this->db->where('files.deleted', FALSE);
+        $this->db->where('file_permissions.account_id', $account_id);
+        $this->db->from('files');
+        $query = $this->db->get();
+        return $query->result();
     }
 
     /**
@@ -162,13 +200,37 @@ class Files_model extends CI_Model
     }
 
     /**
-     * Retrieves all active files with an associated owner_account_id
+     * Generates (and therefore enables) a random token for public link downloads
      *
-     * @param account_id Account ID to match to the owner_account_id
-     * @return Array of file objects with fields that match the database
+     * @param file_id File ID to generate a token for
+     * @return TRUE if successful. FALSE otherwise
      */
-    function getFilesByOwner($account_id) {
-        $query = $this->db->get_where('files', array('owner_account_id' => $account_id));
-    	return $query->result();
+    function generatePublicToken($file_id) {
+        $this->load->helper('string');
+        $token = random_string('alnum', 32);
+
+        $this->db->where('file_pk', $file_id);
+        $this->db->update('files', array('public_link_token' => $token));
+
+        if($this->db->affected_rows() == 1)
+            return TRUE;
+
+        return FALSE;
+    }
+
+    /**
+     * Clears (disables) the public link token
+     *
+     * @param file_id File ID to clear token for
+     * @return TRUE if successful. FALSE otherwise
+     */
+    function clearPublicToken($file_id) {
+        $this->db->where('file_pk', $file_id);
+        $this->db->update('files', array('public_link_token' => NULL));
+
+        if($this->db->affected_rows() == 1)
+            return TRUE;
+
+        return FALSE;
     }
 }

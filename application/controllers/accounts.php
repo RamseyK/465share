@@ -9,6 +9,7 @@ class Accounts extends CI_Controller
 		parent::__construct();
 
 		$this->load->library('form_validation');
+		$this->load->model('Groups_model');
 	}
 
 	/**
@@ -26,8 +27,8 @@ class Accounts extends CI_Controller
 		}
 	}
 	
-	/*
-	 * Redirect to preferences page if logged in. If registration post data submitted, process it and pass to the account model
+	/**
+	 * Redirect to management page if logged in. If registration post data submitted, process it and pass to the account model
 	 */
 	function register() {
 		// If the account is already logged in and somehow ends up here, forward them to their profile
@@ -98,7 +99,10 @@ class Accounts extends CI_Controller
 		$this->load->view('site_main', $page_data);
 	}
 	
-	// Login process function
+	/**
+	 * Login processing function. Email and password are POSTed to this handler, validated, and a login is attempted
+	 * User is redirected to the appropriate page based on the result of the login attempt
+	 */
 	function login() {
 		if(!$this->input->post('login')) {
 			redirect('accounts/showLogin');
@@ -139,10 +143,9 @@ class Accounts extends CI_Controller
 	}
 	
 	/**
-	 * Formally handle a client (current session) request to log out
+	 * Logout. Terminate the session and redirect to the main page
 	 */
 	function logout() {
-		// Destroy the session then redirect
 		$this->Accounts_model->doAccountLogout();
 		redirect('');
 	}
@@ -172,8 +175,8 @@ class Accounts extends CI_Controller
 		$this->load->view('site_main', $page_data);
 	}
 	
-	/*
-	 * Processing function exposed for changing passwords
+	/**
+	 * Change Password. Processes a POST from the management page containing the users old and new passowrd
 	 */
 	function changepw() {
 		// Visitor must be logged in

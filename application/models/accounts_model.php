@@ -229,7 +229,7 @@ class Accounts_model extends CI_Model
 		$new_pass = random_string('alnum', 8);
 		$this->load->library('email');
 		$this->email->from('noreply@465share.com', '465share.com');
-		$this->email->to($email);
+		$this->email->to($account->email);
 		$this->email->subject('465share.com: Password Reset');
 		$this->email->message('Your new password is '.$new_pass);
 		if(!$this->email->send())

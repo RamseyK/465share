@@ -7,7 +7,7 @@ $(function() {
 <br />
 <div class="ui-widget-content ui-corner-all">
 <ul>
-	<li>Files Uploaded: 0</li>
+	<li><?=anchor('files', 'Files Uploaded: 0')?></li>
 	<li>Usage: 0.00 GB</li>
 	<li>Limit: 0.00 GB</li>
 </ul>
