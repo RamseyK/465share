@@ -1,4 +1,4 @@
-<h2>Files</h2>
+<img src="<?=base_url('images/dl_icon.png')?>" alt="Files" height="32" width="32" style="display:inline" /><h2 style="display:inline"> Files</h2><br /><br />
 <div id="myfiles_tabs">
 	<ul>
 		<li><a href="#uploaded-tab">My Files</a></li>

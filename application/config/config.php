@@ -364,9 +364,11 @@ $config['proxy_ips'] = '';
 | Site specific configuration variables
 |--------------------------------------------------------------------------
 |
-| New account registration may be turned on or off from here
+| registration_enabled: New account registration may be turned on or off
+| max_upload_size: 10240 = 10MB. Max size of file upload in kb
 */
 $config['registration_enabled'] = TRUE;
+$config['max_upload_size'] = 10240;
 
 
 /* End of file config.php */

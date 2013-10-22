@@ -29,10 +29,10 @@ class Files extends CI_Controller
 		$stats_data['usage_kb'] = $this->Files_model->getUsageByOwner($account_id);
 
 		// Load template components (all are optional)
-		$page_data['js'] = $this->load->view('files/index_js', $view_data, true);
-		$page_data['content'] = $this->load->view('files/index_content', $view_data, true);
-		$page_data['widgets'] = $this->load->view('files/index_widgets', NULL, true);
-		$page_data['widgets'] .= $this->load->view('widgets/upload_stats', $stats_data, true);
+		$page_data['js'] = $this->load->view('files/index_js', $view_data, TRUE);
+		$page_data['content'] = $this->load->view('files/index_content', $view_data, TRUE);
+		$page_data['widgets'] = $this->load->view('files/index_widgets', NULL, TRUE);
+		$page_data['widgets'] .= $this->load->view('widgets/upload_stats', $stats_data, TRUE);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);
@@ -47,7 +47,7 @@ class Files extends CI_Controller
 		if($this->input->post('upload_submit')) {
 			$uc['upload_path'] = './uploads/';
 			$uc['allowed_types'] = '*'; // All types currently allowed. ex: gif|jpg|png
-			$uc['max_size'] = 10240; // 10240 = 10MB. Max size of file upload in kb
+			$uc['max_size'] = $this->config->item('max_upload_size'); // Maximum upload size specified in config.php
 			$uc['max_filename'] = 128;
 			$uc['encrypt_name'] = TRUE; // File name will be converted to random encrypted string
 
@@ -72,9 +72,9 @@ class Files extends CI_Controller
 		}
 
 		// Load template components (all are optional)
-		$page_data['js'] = $this->load->view('files/upload_js', NULL, true);
-		$page_data['content'] = $this->load->view('files/upload_content', NULL, true);
-		$page_data['widgets'] = $this->load->view('files/upload_widgets', NULL, true);
+		$page_data['js'] = $this->load->view('files/upload_js', NULL, TRUE);
+		$page_data['content'] = $this->load->view('files/upload_content', NULL, TRUE);
+		$page_data['widgets'] = $this->load->view('files/upload_widgets', NULL, TRUE);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);
@@ -163,10 +163,10 @@ class Files extends CI_Controller
 		$stats_data['usage_kb'] = $this->Files_model->getUsageByOwner($account_id);
 
 		// Load template components (all are optional)
-		$page_data['js'] = $this->load->view('files/edit_js', NULL, true);
-		$page_data['content'] = $this->load->view('files/edit_content', $view_data, true);
-		$page_data['widgets'] = $this->load->view('files/edit_widgets', NULL, true);
-		$page_data['widgets'] .= $this->load->view('widgets/upload_stats', $stats_data, true);
+		$page_data['js'] = $this->load->view('files/edit_js', NULL, TRUE);
+		$page_data['content'] = $this->load->view('files/edit_content', $view_data, TRUE);
+		$page_data['widgets'] = $this->load->view('files/edit_widgets', NULL, TRUE);
+		$page_data['widgets'] .= $this->load->view('widgets/upload_stats', $stats_data, TRUE);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);
@@ -324,17 +324,17 @@ class Files extends CI_Controller
 		if(!$this->Accounts_model->checkLogin())
 			return;
 
+		$this->load->helper('file');
 		$account_id = $this->session->userdata('account_id');
 
 		$file = $this->Files_model->getFile($file_id);
-		$rel_path = './uploads/' . $file->name;
 		if($file == NULL) {
 			$this->session->set_flashdata('error_message', 'The file (id = ' . $file_id . ') you were trying to access has been deleted or the data does not exist on the server');
 			redirect('files');
 			return;
 		}
 
-		$this->load->helper('file');
+		$rel_path = './uploads/' . $file->name;
 
 		// Verify this account or its groups have READ access for the file
 		if(!$this->_read_access_check($file_id, $account_id)) {
@@ -352,9 +352,9 @@ class Files extends CI_Controller
 		} else {
 			// Show Download page
 			// Load template components (all are optional)
-			$page_data['js'] = $this->load->view('files/download_js', NULL, true);
-			$page_data['content'] = $this->load->view('files/download_content', $view_data, true);
-			$page_data['widgets'] = $this->load->view('files/download_widgets', $view_data, true);
+			$page_data['js'] = $this->load->view('files/download_js', NULL, TRUE);
+			$page_data['content'] = $this->load->view('files/download_content', $view_data, TRUE);
+			$page_data['widgets'] = $this->load->view('files/download_widgets', $view_data, TRUE);
 			
 			// Send page data to the site_main and have it rendered
 			$this->load->view('site_main', $page_data);
@@ -369,12 +369,13 @@ class Files extends CI_Controller
 
 		// Grab the file metadata
 		$file = $this->Files_model->getFile($file_id);
-		$rel_path = './uploads/' . $file->name;
 		if($file == NULL) {
 			$this->session->set_flashdata('error_message', 'Invalid Link');
 			redirect('files');
 			return;
 		}
+
+		$rel_path = './uploads/' . $file->name;
 
 		// Verify the token is correct
 		if(strcmp($file->public_link_token, $token) != 0) {

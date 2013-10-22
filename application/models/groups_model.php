@@ -25,7 +25,8 @@ class Groups_model extends CI_Model
         $data = array(
             'name'              => $name,
             'parent_group_id'   => $parent_id,
-            'owner_account_id'  => $owner_account_id
+            'owner_account_id'  => $owner_account_id,
+            'date_created'      => now()
         );
         $this->db->insert('groups', $data);
         
@@ -52,6 +53,17 @@ class Groups_model extends CI_Model
             return $query->row();
 
         return NULL;
+    }
+
+    /**
+     * Return an array of group objects that are immediate children of a group
+     *
+     * @param group_id ID of the parent group
+     * @return Array of group objects from the database. Empty array if there are none
+     */
+    function getChildGroups($group_id) {
+        $query = $this->db->get_where('groups', array('parent_group_id' => $group_id));
+        return $query->result();
     }
 
     /**
@@ -118,11 +130,41 @@ class Groups_model extends CI_Model
      * @return TRUE if the account is a member of the group. Otherwise, FALSE
      */
     function hasGroupMembership($group_id, $account_id) {
-    	$query = $this->db->get_where('group_members', array('group_id' => $group_id, 'account_id' => $account_id));
+    	$query = $this->db->get_where('group_members', array('group_id' => $group_id, 'account_id' => $account_id), 1, 0);
     	if($query->num_rows() > 0)
     		return TRUE;
     	else
     		return FALSE;
+    }
+
+    /**
+     * Returns an account membership row for a particular group
+     *
+     * @param group_id ID of the group to match in the pair
+     * @param account_id ID of the account to match in the pair
+     * @return If found, Attributes of the membership. NULL otherwise
+     */
+    function getGroupMembership($group_id, $account_id) {
+        $query = $this->db->get_where('group_members', array('group_id' => $group_id, 'account_id' => $account_id), 1, 0);
+        if($query->num_rows() > 0)
+            return $query->row();
+        else
+            return NULL;
+    }
+
+    /**
+     * Returns an array of group_membership objects joined with the associated account_email
+     *
+     * @param group_id ID of the group to find members for
+     * @return If found, array of group_membership objects (with account_email). Empty otherwise
+     */
+    function getAllGroupMembers($group_id) {
+        $this->db->select('accounts.email as account_email, group_members.*');
+        $this->db->from('group_members');
+        $this->db->join('accounts', 'accounts.account_pk = group_members.account_id');
+        $this->db->where(array('group_id' => $group_id));
+        $query = $this->db->get();
+        return $query->result();
     }
 
     /**
@@ -138,7 +180,7 @@ class Groups_model extends CI_Model
             return TRUE;
 
         // Insert group member to the database
-        $this->db->insert('group_members', array('group_id' => $group_id, 'account_id' => $account_id));
+        $this->db->insert('group_members', array('group_id' => $group_id, 'account_id' => $account_id, 'date_joined' => now()));
         
         if($this->db->affected_rows() == 1)
             return TRUE;

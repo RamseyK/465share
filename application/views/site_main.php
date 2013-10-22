@@ -26,8 +26,8 @@
 <div id="container">
 
 <div id="header">
-	Logo Here<br />
-	<h1>465share.com</h1>
+	<img src="<?=base_url('images/folder_icon.png')?>" alt="Folder" style="width: 64px; height: 64px; display:inline" /><br />
+	<h1 style="display:inline">465share.com</h1>
 	  
 	<div id="navlinks" align="right">
 		<?=anchor('', 'Home')?>

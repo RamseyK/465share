@@ -1,4 +1,4 @@
-<img src="<?=base_url('images/edit_icon.png')?>" alt="Edit" height="32" width="32" style="display:inline" /><h2 style="display:inline"> <?=$file->orig_name?></h2><br /><br />
+<img src="<?=base_url('images/edit_icon.png')?>" alt="Edit" height="32" width="32" style="display:inline" /><h2 style="display:inline"> Edit File: <?=$file->orig_name?></h2><br /><br />
 
 <div id="modify_tabs">
 	<ul>

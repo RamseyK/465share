@@ -8,7 +8,6 @@ class Accounts extends CI_Controller
 	public function __construct() {
 		parent::__construct();
 
-		$this->load->library('form_validation');
 		$this->load->model('Groups_model');
 	}
 
@@ -90,17 +89,17 @@ class Accounts extends CI_Controller
 		}
 	
 		// Load the main page template
-		$page_data['nocache'] = true;
-		$page_data['js'] = $this->load->view('accounts/reg_js', NULL, true);
+		$page_data['nocache'] = TRUE;
+		$page_data['js'] = $this->load->view('accounts/reg_js', NULL, TRUE);
 
 		// Load different content depending on whether or not new account registration is allowed
 		if($this->config->item('registration_enabled') === TRUE) {
-			$page_data['content'] = $this->load->view('accounts/reg_content', '', true);
+			$page_data['content'] = $this->load->view('accounts/reg_content', '', TRUE);
 		} else {
-			$page_data['content'] = $this->load->view('accounts/reg_disabled', '', true);
+			$page_data['content'] = $this->load->view('accounts/reg_disabled', '', TRUE);
 		}
 
-		$page_data['widgets'] = $this->load->view('accounts/reg_widgets', '', true);
+		$page_data['widgets'] = $this->load->view('accounts/reg_widgets', '', TRUE);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);
@@ -117,7 +116,7 @@ class Accounts extends CI_Controller
 		}
 
 		// Vars for tracking the evaluation
-		$result = false;
+		$result = FALSE;
 		$error_msg = '';
 				
 		// Setup the rules of our form
@@ -127,16 +126,16 @@ class Accounts extends CI_Controller
 		// Validate form input and check it against the db:
 		if ($this->form_validation->run() == FALSE) {
 			$error_msg = validation_errors();
-			$result = false;
+			$result = FALSE;
 		} else {
 			// Check the login credentials against the db
-			if ($this->Accounts_model->doAccountLogin($this->input->post('email'), $this->input->post('password')) != true) {
+			if ($this->Accounts_model->doAccountLogin($this->input->post('email'), $this->input->post('password')) != TRUE) {
 				// account didnt enter a valid account/pass combo
 				$error_msg = 'Invalid login credentials or the account is disabled.';
-				$result = false;
+				$result = FALSE;
 			} else {
 				// We succeeded
-				$result = true;
+				$result = TRUE;
 			}
 		}
 
@@ -176,11 +175,11 @@ class Accounts extends CI_Controller
 		$stats_data['usage_kb'] = $this->Files_model->getUsageByOwner($account_id);
 		
 		// Load the main page template
-		$page_data['nocache'] = true;
-		$page_data['js'] = $this->load->view('accounts/manage_js', NULL, true);
-		$page_data['content'] = $this->load->view('accounts/manage_content', $view_data, true);
-		$page_data['widgets'] = $this->load->view('accounts/manage_widgets', NULL, true);
-		$page_data['widgets'] .= $this->load->view('widgets/upload_stats', $stats_data, true);
+		$page_data['nocache'] = TRUE;
+		$page_data['js'] = $this->load->view('accounts/manage_js', NULL, TRUE);
+		$page_data['content'] = $this->load->view('accounts/manage_content', $view_data, TRUE);
+		$page_data['widgets'] = $this->load->view('accounts/manage_widgets', NULL, TRUE);
+		$page_data['widgets'] .= $this->load->view('widgets/upload_stats', $stats_data, TRUE);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);
@@ -249,9 +248,9 @@ class Accounts extends CI_Controller
 		}
 		
 		// Load the password reset page no matter what
-		$page_data['js'] = $this->load->view('accounts/resetpw_js', NULL, true);
-		$page_data['content'] = $this->load->view('accounts/resetpw_content', NULL, true);
-		$page_data['widgets'] = $this->load->view('widgets/login', NULL, true);
+		$page_data['js'] = $this->load->view('accounts/resetpw_js', NULL, TRUE);
+		$page_data['content'] = $this->load->view('accounts/resetpw_content', NULL, TRUE);
+		$page_data['widgets'] = $this->load->view('widgets/login', NULL, TRUE);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);
