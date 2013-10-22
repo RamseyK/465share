@@ -26,7 +26,10 @@ class Groups extends CI_Controller
 		$view_data['my_groups'] = $this->Groups_model->getGroupsByMembership($account_id);
 
 		// Generate an associative array (ID to Group Name) of parent groups for the Create Group widget
+		$owned_groups = $this->Groups_model->getGroupsByOwner($account_id);
 		$parent_group_dropdown = array('0' => 'None');
+		foreach($owned_groups as $og)
+			$parent_group_dropdown[$og->group_pk] = $og->name;
 		$view_data['parent_group_dropdown'] = $parent_group_dropdown;
 
 		// Load the main page template
@@ -50,7 +53,7 @@ class Groups extends CI_Controller
 		if($this->input->post('submit_create_group')) {
 			// Rules
 			$this->form_validation->set_rules('group_name', 'Group Name', 'trim|required|min_length[1]|max_length[32]');
-			$this->form_validation->set_rules('parent_group', 'Parent Group', 'trim|required|is_natural');
+			$this->form_validation->set_rules('parent_group_dropdown', 'Parent Group', 'trim|required|is_natural');
 			
 			if($this->form_validation->run() == FALSE) {
 				$this->session->set_flashdata('error_message', validation_errors());
@@ -62,9 +65,9 @@ class Groups extends CI_Controller
 					// Add to db failed
 					$this->session->set_flashdata('error_message', 'Could not add group to database');
 				} else {
-					// Redirect to edit page where group membership can be modified
+					// Redirect to view page
 					$this->session->set_flashdata('status_message', 'Group has been created successfully');
-					redirect('groups/edit/' . $group_id);
+					redirect('groups/view/' . $group_id);
 					return;
 				}
 			}
