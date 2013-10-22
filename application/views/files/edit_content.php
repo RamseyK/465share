@@ -48,6 +48,7 @@
 		<br /><br />
 		<span style="font-weight: bold">Group Membership</span><br /><br />
 		<p>Grant read AND write access to all accounts in the following groups</p>
+		<?=anchor('groups', 'Manage Groups')?><br />
 	</div>
 
 	<div id="public-tab">

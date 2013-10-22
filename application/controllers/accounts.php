@@ -1,7 +1,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 /*
- * Accounts page
+ * Accounts controller
  */
 class Accounts extends CI_Controller 
 {
@@ -34,6 +34,13 @@ class Accounts extends CI_Controller
 		// If the account is already logged in and somehow ends up here, forward them to their profile
 		if ($this->Accounts_model->isLoggedIn()) {
 			redirect('accounts/manage');
+			return;
+		}
+
+		// Registration must be enabled in the site configuration to proceed
+		if(!$this->config->item('registration_enabled')) {
+			$this->session->set_flashdata('status_message', 'Registration is currently disabled. If you have an existing account, you can still login and access your files');
+			redirect('');
 			return;
 		}
 		
@@ -109,8 +116,7 @@ class Accounts extends CI_Controller
 			return;
 		}
 
-	
-		// Various vars for tracking the evaluation
+		// Vars for tracking the evaluation
 		$result = false;
 		$error_msg = '';
 				
@@ -155,21 +161,26 @@ class Accounts extends CI_Controller
 	 * Loads the account management page for the current account session
 	 */
 	function manage() {
-		// Visitor must be logged in
+		// User must be logged in
 		if(!$this->Accounts_model->checkLogin())
 			return;
 		
 		$this->load->model('Files_model');
 		
 		// Get account details
-		$data['account'] = $this->Accounts_model->getAccount($this->session->userdata('account_id'));
-		//$data['files'] = $this->Files_model->listFiles($this->session->userdata('account_id'));
+		$account_id = $this->session->userdata('account_id');
+		$view_data['account'] = $this->Accounts_model->getAccount($account_id);
+
+		// Data for the stats widget
+		$stats_data['files_uploaded'] = count($this->Files_model->getFilesByOwner($account_id));
+		$stats_data['usage_kb'] = $this->Files_model->getUsageByOwner($account_id);
 		
 		// Load the main page template
 		$page_data['nocache'] = true;
 		$page_data['js'] = $this->load->view('accounts/manage_js', NULL, true);
-		$page_data['content'] = $this->load->view('accounts/manage_content', $data, true);
+		$page_data['content'] = $this->load->view('accounts/manage_content', $view_data, true);
 		$page_data['widgets'] = $this->load->view('accounts/manage_widgets', NULL, true);
+		$page_data['widgets'] .= $this->load->view('widgets/upload_stats', $stats_data, true);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);

@@ -17,15 +17,22 @@ class Files extends CI_Controller
 		if(!$this->Accounts_model->checkLogin())
 			return;
 
+		$account_id = $this->session->userdata('account_id');
+
 		// Pull file data for all tabs
-		$page_data['uploaded_files'] = $this->Files_model->getFilesByOwner($this->session->userdata('account_id'));
-		$page_data['sharedwith_files'] = $this->Files_model->getFilesSharedWithAccount($this->session->userdata('account_id'));
-		$page_data['sharedgroup_files'] = array();
+		$view_data['uploaded_files'] = $this->Files_model->getFilesByOwner($account_id);
+		$view_data['sharedwith_files'] = $this->Files_model->getFilesSharedWithAccount($account_id);
+		$view_data['sharedgroup_files'] = array();
+
+		// Data for the stats widget
+		$stats_data['files_uploaded'] = count($view_data['uploaded_files']);
+		$stats_data['usage_kb'] = $this->Files_model->getUsageByOwner($account_id);
 
 		// Load template components (all are optional)
-		$page_data['js'] = $this->load->view('files/index_js', $page_data, true);
-		$page_data['content'] = $this->load->view('files/index_content', $page_data, true);
+		$page_data['js'] = $this->load->view('files/index_js', $view_data, true);
+		$page_data['content'] = $this->load->view('files/index_content', $view_data, true);
 		$page_data['widgets'] = $this->load->view('files/index_widgets', NULL, true);
+		$page_data['widgets'] .= $this->load->view('widgets/upload_stats', $stats_data, true);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);
@@ -146,16 +153,20 @@ class Files extends CI_Controller
 		}
 
 		// Display the normal edit page
-
 		$view_data['file'] = $file;
 		$view_data['account_permissions'] = $this->Files_model->getAllPermissions($file_id);
 		$view_data['group_accesses'] = $this->Groups_model->getFileGroupAccesses($file_id);
 		$view_data['account_owner_email'] = $this->Accounts_model->getAccountEmail($file->owner_account_id);
 
+		// Data for the stats widget
+		$stats_data['files_uploaded'] = count($this->Files_model->getFilesByOwner($account_id));
+		$stats_data['usage_kb'] = $this->Files_model->getUsageByOwner($account_id);
+
 		// Load template components (all are optional)
 		$page_data['js'] = $this->load->view('files/edit_js', NULL, true);
 		$page_data['content'] = $this->load->view('files/edit_content', $view_data, true);
 		$page_data['widgets'] = $this->load->view('files/edit_widgets', NULL, true);
+		$page_data['widgets'] .= $this->load->view('widgets/upload_stats', $stats_data, true);
 		
 		// Send page data to the site_main and have it rendered
 		$this->load->view('site_main', $page_data);
@@ -343,7 +354,7 @@ class Files extends CI_Controller
 			// Load template components (all are optional)
 			$page_data['js'] = $this->load->view('files/download_js', NULL, true);
 			$page_data['content'] = $this->load->view('files/download_content', $view_data, true);
-			$page_data['widgets'] = $this->load->view('files/download_widgets', NULL, true);
+			$page_data['widgets'] = $this->load->view('files/download_widgets', $view_data, true);
 			
 			// Send page data to the site_main and have it rendered
 			$this->load->view('site_main', $page_data);

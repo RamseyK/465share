@@ -76,6 +76,22 @@ class Files_model extends CI_Model
     }
 
     /**
+     * Returns the total amount of space (in kilobytes) a user has used in non-deleted files
+     *
+     * @param account_id Account ID to match to the owner_account_id
+     * @return Integer representing the total amount of disk space in kb used by the account
+     */
+    function getUsageByOwner($account_id) {
+        $this->db->select('SUM(files.size_kb) AS total_usage', FALSE);
+        $query = $this->db->get_where('files', array('owner_account_id' => $account_id, 'deleted' => FALSE));
+        if($query->num_rows() == 1) {
+            return $query->row()->total_usage;
+        }
+
+        return 0;
+    }
+
+    /**
      * Retrieve all files (joined with their permissions) that a particular account_id has a permission entry for, but that account isnt the owner
      * Ignores files marked as deleted
      *
@@ -164,7 +180,7 @@ class Files_model extends CI_Model
     function updatePermission($file_id, $account_id, $read, $write) {
         // If read and write are being taken away, delete the row in the DB
         if($read == FALSE && $write == FALSE) {
-            $this->Files_model->deletePermission($file_id, $account_id);
+            $this->Files_model->removePermission($file_id, $account_id);
             return TRUE;
         }
 
@@ -190,7 +206,7 @@ class Files_model extends CI_Model
      * @param account_id Associated account id
      * @return TRUE if successful. FALSE otherwise
      */
-    function deletePermission($file_id, $account_id) {
+    function removePermission($file_id, $account_id) {
         $this->db->delete('file_permissions', array('file_id' => $file_id, 'account_id' => $account_id));
 
         if($this->db->affected_rows() == 1)

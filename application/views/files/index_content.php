@@ -33,7 +33,7 @@
 			</tbody>
 			</table>
 		<?php else: ?>
-			<p>There are no files in this category to display</p>
+			<p>There are no files to display in this category</p>
 		<?php endif; ?>
 	</div>
 
@@ -66,7 +66,7 @@
 			</tbody>
 			</table>
 		<?php else: ?>
-			<p>There are no files in this category to display</p>
+			<p>There are no files to display in this category</p>
 		<?php endif; ?>
 	</div>
 
@@ -99,7 +99,7 @@
 			</tbody>
 			</table>
 		<?php else: ?>
-			<p>There are no files in this category to display</p>
+			<p>There are no files to display in this category</p>
 		<?php endif; ?>
 	</div>
 </div>
