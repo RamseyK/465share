@@ -13,7 +13,8 @@
 		<span style="font-weight: bold">Type:</span> <?=$file->type?><br />
 		<span style="font-weight: bold">Size:</span> <?=$file->size_kb?> KB<br />
 		<span style="font-weight: bold">Uploaded On:</span> <?=mdate('%m/%d/%y, %H:%i', $file->date_added)?> GMT<br />
-		<span style="font-weight: bold">Uploaded By:</span> <?=$account_owner_email?><br />
+		<span style="font-weight: bold">Uploaded By:</span> <?=$account_owner_email?><br /><br />
+		<?=anchor('files/delete/'.$file->file_pk, 'Delete File')?>
 	</div>
 
 	<div id="permissions-tab">
@@ -28,12 +29,14 @@
 				<th>Write</th>
 			</tr>
 
-			<?php foreach($account_permissions as $perm): ?>
-			<tr>
-				<td><?=$perm->account_email . ($file->owner_account_id == $perm->account_id ? ' (Owner)' : '')?></td>
-				<td><?=form_checkbox($perm->file_permission_pk.'_read', 'r', $perm->read)?></td>
-				<td><?=form_checkbox($perm->file_permission_pk.'_write', 'w', $perm->write)?></td>
-			</tr>
+			<?php
+			foreach($account_permissions as $perm):
+				$perm_is_owner = $file->owner_account_id == $perm->account_id;?>
+				<tr>
+					<td><?=$perm->account_email . ($perm_is_owner ? ' (Owner)' : '')?></td>
+					<td><?=((!$perm_is_owner) ? form_checkbox($perm->file_permission_pk.'_read', 'r', $perm->read) : '')?></td>
+					<td><?=((!$perm_is_owner) ? form_checkbox($perm->file_permission_pk.'_write', 'w', $perm->write) : '')?></td>
+				</tr>
 			<?php endforeach; ?>
 
 			<tr>
@@ -59,7 +62,7 @@
 
 			<?php foreach($group_accesses as $gr): ?>
 			<tr>
-				<td><?=$gr->name?></td>
+				<td><?=anchor('groups/view/'.$gr->group_pk, $gr->name)?></td>
 				<td><?=form_checkbox($gr->file_group_access_pk.'_read', 'r', $gr->read)?></td>
 				<td><?=form_checkbox($gr->file_group_access_pk.'_write', 'r', $gr->write)?></td>
 			</tr>

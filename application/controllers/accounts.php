@@ -59,7 +59,7 @@ class Accounts extends CI_Controller
 				$password = $this->input->post('reg_password');
 
 				// Add account to the database
-				if($this->Accounts_model->addAccount($data)) {
+				if($this->Accounts_model->createAccount($email, $password)) {
 					// Log the account in and redirect to the management page
 					if($this->Accounts_model->doAccountLogin($email,  $password)) {
 						$this->session->set_flashdata('status_message', 'Welcome to 465share.com!');
@@ -248,6 +248,7 @@ class Accounts extends CI_Controller
 		}
 		
 		// Load the password reset page no matter what
+		$page_data['nocache'] = TRUE;
 		$page_data['js'] = $this->load->view('accounts/resetpw_js', NULL, TRUE);
 		$page_data['content'] = $this->load->view('accounts/resetpw_content', NULL, TRUE);
 		$page_data['widgets'] = $this->load->view('widgets/login', NULL, TRUE);

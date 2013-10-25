@@ -24,7 +24,8 @@ class Files extends CI_Controller
 		$groups = $this->Groups_model->getGroupsByMembership($account_id);
 		foreach($groups as $gr) {
 			$group_files = $this->Files_model->getFilesSharedWithGroup($gr->group_pk);
-			$sharedgroup_files[$gr->name] = $group_files;
+			if(!empty($group_files))
+				$sharedgroup_files[$gr->name] = $group_files;
 		}
 
 		// Pull file data for all tabs
@@ -64,7 +65,7 @@ class Files extends CI_Controller
 			$this->upload->initialize($uc);
 
 			if($this->upload->do_upload()) { // Upload succeeded
-				$file_id = $this->Files_model->addFile($this->session->userdata('account_id'), $this->upload->data());
+				$file_id = $this->Files_model->createFile($this->session->userdata('account_id'), $this->upload->data());
 
 				if($file_id == 0) {
 					// Adding to DB failed
@@ -255,7 +256,7 @@ class Files extends CI_Controller
 			$add_account = $this->Accounts_model->getAccountByEmail($email);
 			if($add_account != NULL) {
 				// A permission will only be added if one doesnt already exist
-				$this->Files_model->addPermission($file_id, $add_account->account_pk, TRUE, FALSE);
+				$this->Files_model->createPermission($file_id, $add_account->account_pk, TRUE, FALSE);
 			} else {
 				$this->session->set_flashdata('error_message', 'Could not add user to the permission list. You must enter a valid email of a registered account.');
 			}
@@ -323,7 +324,7 @@ class Files extends CI_Controller
 		if($add_group_id != 0) {
 			// Give group READ access if the account owns the group to be added
 			if($this->Groups_model->isGroupOwner($add_group_id, $account_id))
-				$this->Files_model->addGroupPermission($file_id, $add_group_id, TRUE, FALSE);
+				$this->Files_model->createGroupPermission($file_id, $add_group_id, TRUE, FALSE);
 		}
 
 		// Reload the normal page
@@ -445,6 +446,46 @@ class Files extends CI_Controller
 		$this->load->helper('file');
 		$this->load->helper('download');
 		force_download($file->orig_name, read_file($rel_path));
+	}
+
+	public function delete($file_id) {
+		// Visitor must be logged in
+		if(!$this->Accounts_model->checkLogin())
+			return;
+
+		$account_id = $this->session->userdata('account_id');
+
+		$file = $this->Files_model->getFile($file_id);
+		if($file == NULL) {
+			$this->session->set_flashdata('error_message', 'The file (id = ' . $file_id . ') you were trying to access has been deleted or the data does not exist on the server');
+			redirect('files');
+			return;
+		}
+
+		// Verify this account or its groups have WRITE access for the file
+		if(!$this->_write_access_check($file_id, $account_id)) {
+			redirect('files');
+			return;
+		}
+
+		$view_data['file'] = $file;
+		$view_data['account_owner_email'] = $this->Accounts_model->getAccountEmail($file->owner_account_id);
+
+		if($this->input->post('submit_delete_confirm')) {
+			// Delete button pressed, mark as deleted in the database
+			$this->Files_model->markFileDeleted($file_id);
+			$this->session->set_flashdata('status_message', 'The file has been marked for deletion');
+			redirect('files');
+			return;
+		}
+
+		// Show delete confirmation page
+		$page_data['js'] = $this->load->view('files/delete_js', NULL, TRUE);
+		$page_data['content'] = $this->load->view('files/delete_content', $view_data, TRUE);
+		$page_data['widgets'] = $this->load->view('widgets/account_info', NULL, TRUE);
+		
+		// Send page data to the site_main and have it rendered
+		$this->load->view('site_main', $page_data);
 	}
 }
 

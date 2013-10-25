@@ -21,7 +21,8 @@
 			echo anchor('groups/view/'.$child->group_pk, $child->name) . ', ';
 		endforeach;
 		?>
-		<br />
+		<br /><br />
+		<?=anchor('groups/delete/'.$group->group_pk, 'Delete Group')?>
 	</div>
 
 	<div id="files-tab">
@@ -75,12 +76,14 @@
 				<th>Remove</th>
 			</tr>
 
-			<?php foreach($members as $mem): ?>
-			<tr>
-				<td><?=$mem->account_email . ($group->owner_account_id == $mem->account_id ? ' (Owner)' : '')?></td>
-				<td><?=mdate('%m/%d/%y, %H:%i', $mem->date_joined)?></td>
-				<td><?=form_checkbox($mem->group_member_pk.'_remove', 'remove', FALSE)?></td>
-			</tr>
+			<?php
+			foreach($members as $mem):
+				$mem_is_owner = $group->owner_account_id == $mem->account_id;?>
+				<tr>
+					<td><?=$mem->account_email . ($mem_is_owner ? ' (Owner)' : '')?></td>
+					<td><?=mdate('%m/%d/%y, %H:%i', $mem->date_joined)?></td>
+					<td><?=((!$mem_is_owner) ? form_checkbox($mem->group_member_pk.'_remove', 'remove', FALSE) : '')?></td>
+				</tr>
 			<?php endforeach; ?>
 
 			<tr>

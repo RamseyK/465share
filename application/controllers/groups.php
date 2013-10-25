@@ -61,7 +61,7 @@ class Groups extends CI_Controller
 				redirect('groups');
 			} else {
 				// Add group to the database
-				$group_id = $this->Groups_model->addGroup($this->input->post('group_name'), $this->input->post('parent_group_dropdown'), $this->session->userdata('account_id'));
+				$group_id = $this->Groups_model->createGroup($this->input->post('group_name'), $this->input->post('parent_group_dropdown'), $this->session->userdata('account_id'));
 				if($group_id == 0) {
 					// Add to db failed
 					$this->session->set_flashdata('error_message', 'Could not add group to database');
@@ -162,7 +162,7 @@ class Groups extends CI_Controller
 		// Loop through group members and see if any were removed (by checking remove next to their name)
 		$members = $this->Groups_model->getAllGroupMembers($group_id);
 		foreach($members as $mem) {
-			if(isset($_POST[$mem->group_member_pk.'_remove'])) {
+			if(isset($_POST[$mem->group_member_pk.'_remove']) && ($mem->account_id != $group->owner_account_id)) {
 				$this->Groups_model->removeMember($group_id, $mem->account_id);
 			}
 		}
@@ -182,5 +182,49 @@ class Groups extends CI_Controller
 		// Reload normal view page
 		$this->session->set_flashdata('status_message', 'Memberships for this group have been updated successfully!');
 		redirect('groups/view/'.$group_id);
+	}
+
+	public function delete($group_id) {
+		if(!$this->Accounts_model->checkLogin())
+			return;
+
+		$account_id = $this->session->userdata('account_id');
+
+		$group = $this->Groups_model->getGroup($group_id);
+		if($group == NULL) {
+			$this->session->set_flashdata('error_message', 'Group does not exist');
+			redirect('groups');
+			return;
+		}
+
+		// User must be the groups owner to delete it
+		if($account_id != $group->owner_account_id) {
+			$this->session->set_flashdata('error_message', 'You must be the owner of the group make any changes');
+			redirect('groups');
+			return;
+		}
+
+		// Child groups must not be present for a delete to go through
+		$child_groups = $this->Groups_model->getChildGroups($group_id);
+
+		if($this->input->post('submit_delete_confirm') && empty($child_groups)) {
+			// Delete button pressed, delete all group related entries in DB
+			$this->Groups_model->deleteGroup($group_id);
+			$this->session->set_flashdata('status_message', 'The group has been deleted');
+			redirect('groups');
+			return;
+		}
+
+		$view_data['group'] = $group;
+		$view_data['parent_group'] = $this->Groups_model->getGroup($group->parent_group_id);
+		$view_data['child_groups'] = $child_groups;
+
+		// Show delete confirmation page
+		$page_data['js'] = $this->load->view('groups/delete_js', NULL, TRUE);
+		$page_data['content'] = $this->load->view('groups/delete_content', $view_data, TRUE);
+		$page_data['widgets'] = $this->load->view('widgets/account_info', NULL, TRUE);
+		
+		// Send page data to the site_main and have it rendered
+		$this->load->view('site_main', $page_data);
 	}
 }

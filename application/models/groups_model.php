@@ -14,7 +14,7 @@ class Groups_model extends CI_Model
      * @param owner_account_id Account ID to use as the owner of the group
      * @return New group ID, 0 otherwise
      */
-    function addGroup($name, $parent_id, $owner_account_id) {
+    function createGroup($name, $parent_id, $owner_account_id) {
         // Verify the parent group is owned by the account
         if($parent_id != 0 && !$this->Groups_model->isGroupOwner($parent_id, $owner_account_id))
             return 0;
@@ -39,6 +39,17 @@ class Groups_model extends CI_Model
         $this->Groups_model->addMember($group_id, $owner_account_id);
 
         return $group_id;
+    }
+
+    /**
+     * Delete a group and all of its related accesses and member entries in the database
+     *
+     * @param group_id ID of the group to delete
+     */
+    function deleteGroup($group_id) {
+        $this->db->delete('groups', array('group_pk' => $group_id));
+        $this->db->delete('group_members', array('group_id' => $group_id));
+        $this->db->delete('file_group_accesses', array('group_id' => $group_id));
     }
 
     /**

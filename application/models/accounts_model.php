@@ -5,7 +5,7 @@ class Accounts_model extends CI_Model
 	function __construct() {
 		parent::__construct();
 
-		$this->load->helper('string'); // Used in changePassword, resetPassword, addAccount
+		$this->load->helper('string'); // Used in changePassword, resetPassword, createAccount
 	}
 	
 	/**
@@ -108,7 +108,7 @@ class Accounts_model extends CI_Model
 	 * @param password Password for the account
 	 * @return true if adding the account to the database was successful. False if otherwise
 	 */
-	function addAccount($email, $password) {
+	function createAccount($email, $password) {
 		// Make sure the account email doesn't already exist
         if ($this->Accounts_model->getAccountByEmail($email) != NULL)
             return FALSE;

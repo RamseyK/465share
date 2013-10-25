@@ -13,7 +13,7 @@ class Files_model extends CI_Model
      * @param file An array containing data about the file that was uploaded. Field names can be found in the CI File Uploading docs
      * @return New file ID, 0 otherwise
      */
-	function addFile($account_id, $file) {
+	function createFile($account_id, $file) {
         $file_id = 0;
 
 		// Insert file information to the database
@@ -36,7 +36,7 @@ class Files_model extends CI_Model
             return 0;
 
         // Insert read/write permissions for the owner
-        $this->Files_model->addPermission($file_id, $account_id, TRUE, TRUE);
+        $this->Files_model->createPermission($file_id, $account_id, TRUE, TRUE);
 
 		return $file_id;
 	}
@@ -45,11 +45,11 @@ class Files_model extends CI_Model
      * Retrieves file info from the database based on the ID
      * Ignores files marked as deleted or files that do not exist on the current server
      *
-     * @param id File ID to use for looking up
+     * @param file_id File ID to use for looking up
      * @return File object with fields that match the database. NULL if not found
      */
-    function getFile($id) {
-    	$query = $this->db->get_where('files', array('file_pk' => $id, 'deleted' => FALSE), 1, 0);
+    function getFile($file_id) {
+    	$query = $this->db->get_where('files', array('file_pk' => $file_id, 'deleted' => FALSE), 1, 0);
     	if($query->num_rows() > 0) {
             $file = $query->row();
 
@@ -61,6 +61,23 @@ class Files_model extends CI_Model
         }
     	else
     		return NULL;
+    }
+
+    /**
+     * Mark file for deletion in the database, but don't delete any of the accesses or remove the file from the uploads directory
+     * True deletion will happen once a month by a maintanance function
+     *
+     * @param file_id File ID to mark for deletion
+     * @return TRUE if successful. Otherwise, FALSE
+     */
+    function markFileDeleted($file_id) {
+        $this->db->where('file_pk', $file_id);
+        $this->db->update('files', array('deleted' => TRUE));
+
+        if($this->db->affected_rows() == 1)
+            return TRUE;
+
+        return FALSE;
     }
 
     /**
@@ -177,7 +194,7 @@ class Files_model extends CI_Model
      * @param write Write allowed (boolean)
      * @return TRUE if successful. FALSE otherwise
      */
-    function addPermission($file_id, $account_id, $read, $write) {
+    function createPermission($file_id, $account_id, $read, $write) {
         $perm = $this->Files_model->getPermission($file_id, $account_id);
         
         if($perm == NULL) {
@@ -209,7 +226,7 @@ class Files_model extends CI_Model
     function updatePermission($file_id, $account_id, $read, $write) {
         // If read and write are being taken away, delete the row in the DB
         if($read == FALSE && $write == FALSE) {
-            $this->Files_model->removePermission($file_id, $account_id);
+            $this->Files_model->deletePermission($file_id, $account_id);
             return TRUE;
         }
 
@@ -235,7 +252,7 @@ class Files_model extends CI_Model
      * @param account_id Associated account id
      * @return TRUE if successful. FALSE otherwise
      */
-    function removePermission($file_id, $account_id) {
+    function deletePermission($file_id, $account_id) {
         $this->db->delete('file_permissions', array('file_id' => $file_id, 'account_id' => $account_id));
 
         if($this->db->affected_rows() == 1)
@@ -252,7 +269,7 @@ class Files_model extends CI_Model
      * @return If found, file_permission attributes for the file/group pair. NULL if not found
      */
     function getGroupPermission($file_id, $group_id) {
-        $query = $this->db->get_where('file_group_accesses', array('file_id' => $file_id, 'group_id' => $account_id), 1, 0);
+        $query = $this->db->get_where('file_group_accesses', array('file_id' => $file_id, 'group_id' => $group_id), 1, 0);
         if($query->num_rows() > 0)
             return $query->row();
         else
@@ -268,7 +285,7 @@ class Files_model extends CI_Model
      * @param write Write allowed (boolean)
      * @return TRUE if successful. FALSE otherwise
      */
-    function addGroupPermission($file_id, $group_id, $read, $write) {
+    function createGroupPermission($file_id, $group_id, $read, $write) {
         $perm = $this->Files_model->getGroupPermission($file_id, $group_id);
         
         if($perm == NULL) {
@@ -300,7 +317,7 @@ class Files_model extends CI_Model
     function updateGroupPermission($file_id, $group_id, $read, $write) {
         // If read and write are being taken away, delete the row in the DB
         if($read == FALSE && $write == FALSE) {
-            $this->Files_model->removeGroupPermission($file_id, $group_id);
+            $this->Files_model->deleteGroupPermission($file_id, $group_id);
             return TRUE;
         }
 
@@ -326,7 +343,7 @@ class Files_model extends CI_Model
      * @param group_id Associated group id
      * @return TRUE if successful. FALSE otherwise
      */
-    function removeGroupPermission($file_id, $group_id) {
+    function deleteGroupPermission($file_id, $group_id) {
         $this->db->delete('file_group_accesses', array('file_id' => $file_id, 'group_id' => $group_id));
 
         if($this->db->affected_rows() == 1)

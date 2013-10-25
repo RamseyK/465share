@@ -7,6 +7,7 @@
 	</ul>
 	<div id="uploaded-tab">
 		<?php if(!empty($uploaded_files)): ?>
+			<span style="font-weight: bold">My Files</span><br /><br />
 			<table id="uploaded_table" class="tablesorter">
 			<thead>
 			<tr>
@@ -80,7 +81,7 @@
 
 	<div id="sharedgroup-tab">
 		<?php if(!empty($sharedgroup_files)): ?>
-			<span style="font-weight: bold">Shared with Me</span><br /><br />
+			<span style="font-weight: bold">Shared with Groups</span><br /><br />
 			<table id="sharedgroup_table" class="tablesorter">
 			<thead>
 			<tr>
