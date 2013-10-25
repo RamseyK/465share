@@ -14,8 +14,8 @@
 | path to your installation.
 |
 */
-$config['base_url']	= 'http://465share.com/';
-//$config['base_url']	= 'http://localhost/';
+//$config['base_url']	= 'http://465share.com/';
+$config['base_url']	= 'http://localhost/';
 
 /*
 |--------------------------------------------------------------------------
@@ -225,7 +225,7 @@ $config['cache_path'] = '';
 | MUST set an encryption key.  See the user guide for info.
 |
 */
-$config['encryption_key'] = 'pzFRzop3Qyv3wmuY87tBRNmQsp9Jpfzj';
+$config['encryption_key'] = '';
 
 /*
 |--------------------------------------------------------------------------

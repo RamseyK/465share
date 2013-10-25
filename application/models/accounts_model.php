@@ -48,7 +48,7 @@ class Accounts_model extends CI_Model
 		$this->session->set_userdata('logged_in', TRUE);
 		$this->session->set_userdata('email', $row->email);
 		$this->session->set_userdata('account_id', $row->account_pk);	
-		if($this->accountHasPermission($row->account_pk, 'ADMIN'))
+		if($this->hasAccountPermission($row->account_pk, 'ADMIN'))
 			$this->session->set_userdata('is_admin', TRUE);
 		else
 			$this->session->set_userdata('is_admin', FALSE);
@@ -261,7 +261,7 @@ class Accounts_model extends CI_Model
 	 * @param $access Access String to look for
 	 * @return TRUE if the account has the permission. False if otherwise
 	 */
-	function accountHasPermission($id, $access) {
+	function hasAccountPermission($id, $access) {
 		$query = $this->db->get_where('account_permissions', array('account_id' => $id, 'access' => $access));
 		
 		if($query->num_rows() > 0)
