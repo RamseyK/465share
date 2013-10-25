@@ -19,10 +19,18 @@ class Files extends CI_Controller
 
 		$account_id = $this->session->userdata('account_id');
 
+		// Create array of files shared with each group indexed by group names
+		$sharedgroup_files = array();
+		$groups = $this->Groups_model->getGroupsByMembership($account_id);
+		foreach($groups as $gr) {
+			$group_files = $this->Files_model->getFilesSharedWithGroup($gr->group_pk);
+			$sharedgroup_files[$gr->name] = $group_files;
+		}
+
 		// Pull file data for all tabs
 		$view_data['uploaded_files'] = $this->Files_model->getFilesByOwner($account_id);
 		$view_data['sharedwith_files'] = $this->Files_model->getFilesSharedWithAccount($account_id);
-		$view_data['sharedgroup_files'] = array();
+		$view_data['sharedgroup_files'] = $sharedgroup_files;
 
 		// Data for the stats widget
 		$stats_data['files_uploaded'] = count($view_data['uploaded_files']);
@@ -50,6 +58,7 @@ class Files extends CI_Controller
 			$uc['max_size'] = $this->config->item('max_upload_size'); // Maximum upload size specified in config.php
 			$uc['max_filename'] = 128;
 			$uc['encrypt_name'] = TRUE; // File name will be converted to random encrypted string
+			$uc['remove_spaces'] = TRUE;
 
 			$this->load->library('upload');
 			$this->upload->initialize($uc);
@@ -95,9 +104,9 @@ class Files extends CI_Controller
 			return TRUE;
 
 		// Check group accesses for the file and the membership of the account
-		$groups = $this->Groups_model->getFileGroupAccesses($file_id);
+		$groups = $this->Files_model->getGroupsWithAccess($file_id);
 		foreach($groups as $group) {
-			if($this->Groups_model->hasGroupMembership($group->group_id, $account_id))
+			if($group->read && $this->Groups_model->hasGroupMembership($group->group_id, $account_id))
 				return TRUE;
 		}
 
@@ -121,9 +130,9 @@ class Files extends CI_Controller
 			return TRUE;
 
 		// Check group accesses for the file and the membership of the account
-		$groups = $this->Groups_model->getFileGroupAccesses($file_id);
+		$groups = $this->Files_model->getGroupsWithAccess($file_id);
 		foreach($groups as $group) {
-			if($this->Groups_model->hasGroupMembership($group->group_id, $account_id))
+			if($group->write && $this->Groups_model->hasGroupMembership($group->group_id, $account_id))
 				return TRUE;
 		}
 
@@ -152,11 +161,18 @@ class Files extends CI_Controller
 			return;
 		}
 
-		// Display the normal edit page
+		// Data for edit page
 		$view_data['file'] = $file;
-		$view_data['account_permissions'] = $this->Files_model->getAllPermissions($file_id);
-		$view_data['group_accesses'] = $this->Groups_model->getFileGroupAccesses($file_id);
+		$view_data['account_permissions'] = $this->Files_model->getAllAccountPermissions($file_id);
+		$view_data['group_accesses'] = $this->Files_model->getGroupsWithAccess($file_id);
 		$view_data['account_owner_email'] = $this->Accounts_model->getAccountEmail($file->owner_account_id);
+
+		// Generate an associative array (ID to Group Name) of groups for the add group dropdown
+		$owned_groups = $this->Groups_model->getGroupsByOwner($account_id);
+		$add_group_dropdown = array('0' => 'None');
+		foreach($owned_groups as $og)
+			$add_group_dropdown[$og->group_pk] = $og->name;
+		$view_data['add_group_dropdown'] = $add_group_dropdown;
 
 		// Data for the stats widget
 		$stats_data['files_uploaded'] = count($this->Files_model->getFilesByOwner($account_id));
@@ -177,12 +193,6 @@ class Files extends CI_Controller
 		if(!$this->Accounts_model->checkLogin())
 			return;
 
-		// Check for the update_acct_perms POST variable, indicating the account permissions form was submitted
-		if(!$this->input->post('update_acct_perms')) {
-			redirect('files/edit/'.$file_id);
-			return;
-		}
-
 		$account_id = $this->session->userdata('account_id');
 
 		$file = $this->Files_model->getFile($file_id);
@@ -198,8 +208,23 @@ class Files extends CI_Controller
 			return;
 		}
 
+		// Check for the update_acct_perms POST variable, indicating the account permissions form was submitted
+		if($this->input->post('update_acct_perms')) {
+			// Validate email input
+			$this->form_validation->set_rules('acct_perm_new_user', 'Add User', 'max_length[32]|valid_email');
+			
+			if($this->form_validation->run() == FALSE) {
+				$this->session->set_flashdata('error_message', validation_errors());
+				redirect('files/edit/'.$file_id);
+				return;
+			}
+		} else {
+			redirect('files/edit/'.$file_id);
+			return;
+		}
+
 		// Update Individual Account Permissions
-		$all_perms = $this->Files_model->getAllPermissions($file_id);
+		$all_perms = $this->Files_model->getAllAccountPermissions($file_id);
 		foreach($all_perms as $perm) {
 			// Each checkbox element in the form corresponds to the perm id plus _read or _write
 
@@ -225,9 +250,9 @@ class Files extends CI_Controller
 		}
 
 		// A new account is being added to the permission list
-		$add_account_email = $this->input->post('acct_perm_new_user');
-		if(!empty($add_account_email)) {
-			$add_account = $this->Accounts_model->getAccountByEmail($add_account_email);
+		$email = $this->input->post('acct_perm_new_user');
+		if(!empty($email)) {
+			$add_account = $this->Accounts_model->getAccountByEmail($email);
 			if($add_account != NULL) {
 				// A permission will only be added if one doesnt already exist
 				$this->Files_model->addPermission($file_id, $add_account->account_pk, TRUE, FALSE);
@@ -236,9 +261,8 @@ class Files extends CI_Controller
 			}
 		}
 
-		$this->session->set_flashdata('status_message', 'Individual accesses for this file have been updated successfully!');
-
 		// Reload the normal page
+		$this->session->set_flashdata('status_message', 'Individual accesses for this file have been updated successfully!');
 		redirect('files/edit/'.$file_id);
 	}
 
@@ -246,12 +270,6 @@ class Files extends CI_Controller
 		// Visitor must be logged in
 		if(!$this->Accounts_model->checkLogin())
 			return;
-
-		// Check for the update_group_perms POST variable, indicating the group permissions form was submitted
-		if(!$this->input->post('update_group_perms')) {
-			redirect('files/edit/'.$file_id);
-			return;
-		}
 
 		$account_id = $this->session->userdata('account_id');
 
@@ -268,9 +286,48 @@ class Files extends CI_Controller
 			return;
 		}
 
+		// Check for the update_group_perms POST variable, indicating the group permissions form was submitted
+		if($this->input->post('update_group_perms')) {
+			$this->form_validation->set_rules('add_group_dropdown', 'Add Group', 'trim|required|is_natural');
+			
+			if($this->form_validation->run() == FALSE) {
+				$this->session->set_flashdata('error_message', validation_errors());
+				redirect('files/edit/'.$file_id);
+				return;
+			}
+		} else {
+			redirect('files/edit/'.$file_id);
+			return;
+		}
+
 		// Update Group Permissions
+		$all_perms = $this->Files_model->getGroupsWithAccess($file_id);
+		foreach($all_perms as $perm) {
+			// Each checkbox element in the form corresponds to the perm id plus _read or _write
+
+			$updated_read = FALSE;
+			if(isset($_POST[$perm->file_group_access_pk.'_read']))
+				$updated_read = TRUE;
+
+			$updated_write = FALSE;
+			if(isset($_POST[$perm->file_group_access_pk.'_write']))
+				$updated_write = TRUE;
+
+			// Update the permission in the database if it's changed
+			if($perm->read != $updated_read || $perm->write != $updated_write)
+				$this->Files_model->updateGroupPermission($file_id, $perm->group_id, $updated_read, $updated_write);
+		}
+
+		// A new group is being added to the permission list
+		$add_group_id = $this->input->post('add_group_dropdown');
+		if($add_group_id != 0) {
+			// Give group READ access if the account owns the group to be added
+			if($this->Groups_model->isGroupOwner($add_group_id, $account_id))
+				$this->Files_model->addGroupPermission($file_id, $add_group_id, TRUE, FALSE);
+		}
 
 		// Reload the normal page
+		$this->session->set_flashdata('status_message', 'Group permissions for this file have been updated successfully!');
 		redirect('files/edit/'.$file_id);
 	}
 

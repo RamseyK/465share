@@ -46,9 +46,9 @@ class Accounts extends CI_Controller
 		// Check for registration POST data
 		if($this->input->post('register')) {
 			// Rules
-			$this->form_validation->set_rules('reg_email', 'Email', 'trim|required|min_length[3]|max_length[24]|valid_email|prep_for_form');
+			$this->form_validation->set_rules('reg_email', 'Email', 'trim|required|min_length[3]|max_length[32]|valid_email|prep_for_form');
 			$this->form_validation->set_rules('confirm_email', 'Email Confirmation', 'required|matches[reg_email]');
-			$this->form_validation->set_rules('reg_password', 'Password', 'trim|required|min_length[3]|max_length[24]|prep_for_form');
+			$this->form_validation->set_rules('reg_password', 'Password', 'trim|required|min_length[6]|max_length[32]|prep_for_form');
 			$this->form_validation->set_rules('confirm_password', 'Password Confirmation', 'required|matches[reg_password]');
 			
 			if($this->form_validation->run() == FALSE) {

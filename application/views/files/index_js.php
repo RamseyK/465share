@@ -38,8 +38,11 @@ $(function() {
 	<?php if(!empty($sharedgroup_files)) { ?>
 	$("#sharedgroup_table").tablesorter({
 		headers: {
-			// Disable sorting in the last column
-			4: {
+			// Disable sorting in the last two columns
+			5: {
+				sorter: false
+			},
+			6: {
 				sorter: false
 			}
 		},

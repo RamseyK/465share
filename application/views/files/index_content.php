@@ -59,8 +59,16 @@
 					<td><?=$uf->orig_name?></td>
 					<td><?=$uf->type?></td>
 					<td><?=$uf->size_kb?></td>
-					<td><?php if ($uf->write):?><a href="<?=base_url('files/edit/'.$uf->file_pk)?>"><span class="ui-icon ui-icon-arrowthick-1-e"></span></a><?php endif; ?></td>
-					<td><?php if ($uf->read):?><a href="<?=base_url('files/download/'.$uf->file_pk)?>"><span class="ui-icon ui-icon-arrowthick-1-e"></span></a><?php endif; ?></td>
+					<td>
+						<?php if ($uf->write):?>
+						<a href="<?=base_url('files/edit/'.$uf->file_pk)?>"><span class="ui-icon ui-icon-arrowthick-1-e"></span></a>
+						<?php endif; ?>
+					</td>
+					<td>
+						<?php if ($uf->read):?>
+						<a href="<?=base_url('files/download/'.$uf->file_pk)?>"><span class="ui-icon ui-icon-arrowthick-1-e"></span></a>
+						<?php endif; ?>
+					</td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -72,30 +80,45 @@
 
 	<div id="sharedgroup-tab">
 		<?php if(!empty($sharedgroup_files)): ?>
-			<span style="font-weight: bold">Shared with Groups</span><br /><br />
+			<span style="font-weight: bold">Shared with Me</span><br /><br />
 			<table id="sharedgroup_table" class="tablesorter">
 			<thead>
 			<tr>
 				<th>Date</th>
+				<th>Group</th>
 				<th>Name</th>
 				<th>Type</th>
 				<th>Size (kb)</th>
-				<th>Group</th>
 				<th>Edit</th>
+				<th>DL</th>
 			</tr>
 			</thead>
 
 			<tbody>		
-			<?php foreach($sharedgroup_files as $uf): ?>
-				<tr>
-					<td><?=mdate('%m/%d/%y, %H:%i', $uf->date_added)?></td>
-					<td><?=$uf->orig_name?></td>
-					<td><?=$uf->type?></td>
-					<td><?=$uf->size_kb?></td>
-					<td></td>
-					<td><a href="<?=base_url('files/edit/'.$uf->file_pk)?>"><span class="ui-icon ui-icon-arrowthick-1-e"></span></a></td>
-				</tr>
-			<?php endforeach; ?>
+			<?php
+			foreach($sharedgroup_files as $group_name => $group_files):
+				foreach($group_files as $uf):?>
+					<tr>
+						<td><?=mdate('%m/%d/%y, %H:%i', $uf->date_added)?></td>
+						<td><?=$group_name?></td>
+						<td><?=$uf->orig_name?></td>
+						<td><?=$uf->type?></td>
+						<td><?=$uf->size_kb?></td>
+						<td>
+							<?php if ($uf->write):?>
+							<a href="<?=base_url('files/edit/'.$uf->file_pk)?>"><span class="ui-icon ui-icon-arrowthick-1-e"></span></a>
+							<?php endif; ?>
+						</td>
+						<td>
+							<?php if ($uf->read):?>
+							<a href="<?=base_url('files/download/'.$uf->file_pk)?>"><span class="ui-icon ui-icon-arrowthick-1-e"></span></a>
+							<?php endif; ?>
+						</td>
+					</tr>
+			<?php
+				endforeach;
+			endforeach;
+			?>
 			</tbody>
 			</table>
 		<?php else: ?>

@@ -93,20 +93,6 @@ class Groups_model extends CI_Model
     }
 
     /**
-     * Returns a list of groups that have access entries for a particular file
-     * If empty, no group membership is required
-     *
-     * @param file_id File ID
-     * @return List of groups required to access the file. Empty = no group membership required
-     */
-    function getFileGroupAccesses($file_id) {
-        $this->db->select('*');
-    	$this->db->join('groups', 'groups.group_pk = file_group_accesses.group_id');
-        $query = $this->db->get_where('file_group_accesses', array('file_id' => $file_id));
-        return $query->result();
-    }
-
-    /**
      * Checks if an account is the owner of a particular group
      *
      * @param group_id ID of the group to match

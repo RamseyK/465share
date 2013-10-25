@@ -8,6 +8,7 @@ class Groups extends CI_Controller
 	public function __construct() {
 		parent::__construct();
 
+		$this->load->model('Files_model');
 		$this->load->model('Groups_model');
 	}
 
@@ -22,10 +23,10 @@ class Groups extends CI_Controller
 		$account_id = $this->session->userdata('account_id');
 
 		// Get group data for the page
-		$view_data['group_memberships'] = $this->Groups_model->getGroupsByOwner($account_id);
-		$view_data['my_groups'] = $this->Groups_model->getGroupsByMembership($account_id);
+		$view_data['my_groups'] = $this->Groups_model->getGroupsByOwner($account_id);
+		$view_data['group_memberships'] = $this->Groups_model->getGroupsByMembership($account_id);
 
-		// Generate an associative array (ID to Group Name) of parent groups for the Create Group widget
+		// Generate an associative array (ID to Group Name) of parent groups for the Create Group dropdown widget
 		$owned_groups = $this->Groups_model->getGroupsByOwner($account_id);
 		$parent_group_dropdown = array('0' => 'None');
 		foreach($owned_groups as $og)
@@ -52,7 +53,7 @@ class Groups extends CI_Controller
 		// Check for button POST data
 		if($this->input->post('submit_create_group')) {
 			// Rules
-			$this->form_validation->set_rules('group_name', 'Group Name', 'trim|required|min_length[1]|max_length[32]');
+			$this->form_validation->set_rules('group_name', 'Group Name', 'trim|required|min_length[1]|max_length[32]|alpha_numeric');
 			$this->form_validation->set_rules('parent_group_dropdown', 'Parent Group', 'trim|required|is_natural');
 			
 			if($this->form_validation->run() == FALSE) {
@@ -100,13 +101,14 @@ class Groups extends CI_Controller
 			return;
 		}
 
-		// Data for pages
+		// Data for the page
 		$view_data['is_owner'] = $account_id == $group->owner_account_id; // Edit tab will be displayed if the user is the group owner
 		$view_data['account_owner_email'] = $this->Accounts_model->getAccountEmail($group->owner_account_id);
 		$view_data['group'] = $group;
 		$view_data['membership'] = $membership;
 		$view_data['parent_group'] = $this->Groups_model->getGroup($group->parent_group_id);
 		$view_data['child_groups'] = $this->Groups_model->getChildGroups($group_id);
+		$view_data['files'] = $this->Files_model->getFilesSharedWithGroup($group_id);
 		$view_data['members'] = $this->Groups_model->getAllGroupMembers($group_id);
 
 		// Load the main page template
@@ -137,11 +139,48 @@ class Groups extends CI_Controller
 
 		// User must be the groups owner to edit it
 		if($account_id != $group->owner_account_id) {
-			$this->session->set_flashdata('error_message', 'You must be the owner of the group to modify it');
+			$this->session->set_flashdata('error_message', 'You must be the owner of the group make any changes');
 			redirect('groups');
 			return;
 		}
 
+		// Check for the submit_update_members POST variable, indicating the members form was submitted
+		if($this->input->post('submit_update_members')) {
+			// Validate email input
+			$this->form_validation->set_rules('group_new_user', 'Add User', 'max_length[32]|valid_email');
+			
+			if($this->form_validation->run() == FALSE) {
+				$this->session->set_flashdata('error_message', validation_errors());
+				redirect('groups/view/'.$group_id);
+				return;
+			}
+		} else {
+			redirect('groups/view/'.$group_id);
+			return;
+		}
 
+		// Loop through group members and see if any were removed (by checking remove next to their name)
+		$members = $this->Groups_model->getAllGroupMembers($group_id);
+		foreach($members as $mem) {
+			if(isset($_POST[$mem->group_member_pk.'_remove'])) {
+				$this->Groups_model->removeMember($group_id, $mem->account_id);
+			}
+		}
+
+		// A new member is being added
+		$email = $this->input->post('group_new_user');
+		if(!empty($email)) {
+			$add_account = $this->Accounts_model->getAccountByEmail($email);
+			if($add_account != NULL) {
+				// Add member (will check if they already exist in group)
+				$this->Groups_model->addMember($group_id, $add_account->account_pk);
+			} else {
+				$this->session->set_flashdata('error_message', 'Could not add group member. You must enter a valid email of a registered account.');
+			}
+		}
+
+		// Reload normal view page
+		$this->session->set_flashdata('status_message', 'Memberships for this group have been updated successfully!');
+		redirect('groups/view/'.$group_id);
 	}
 }

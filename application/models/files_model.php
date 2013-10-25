@@ -110,6 +110,50 @@ class Files_model extends CI_Model
     }
 
     /**
+     * Returns an array of file objects joined with access attributes a group has an entry for
+     *
+     * @param group_id Group ID
+     * @return Array of file objects (with file_group_accesses attributes). Empty if none
+     */
+    function getFilesSharedWithGroup($group_id) {
+        $this->db->select('files.*, file_group_accesses.read, file_group_accesses.write');
+        $this->db->join('file_group_accesses', 'files.file_pk = file_group_accesses.file_id');
+        $this->db->where('files.deleted', FALSE);
+        $this->db->where('file_group_accesses.group_id', $group_id);
+        $this->db->from('files');
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    /**
+     * Returns all file_permission attributes (read/write) results for a particular file
+     *
+     * @param file_id File ID to look up permissions for
+     * @return An array of file_permission rows. If none, an empty array
+     */
+    function getAllAccountPermissions($file_id) {
+        $this->db->select('accounts.email as account_email, file_permissions.*');
+        $this->db->from('file_permissions');
+        $this->db->join('accounts', 'accounts.account_pk = file_permissions.account_id');
+        $this->db->where(array('file_id' => $file_id));
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    /**
+     * Returns a list of groups joined with access entries for a particular file
+     *
+     * @param file_id File ID
+     * @return List of groups with access entries for the file
+     */
+    function getGroupsWithAccess($file_id) {
+        $this->db->select('*');
+        $this->db->join('groups', 'groups.group_pk = file_group_accesses.group_id');
+        $query = $this->db->get_where('file_group_accesses', array('file_id' => $file_id));
+        return $query->result();
+    }
+
+    /**
      * Returns the file_permission attributes (read/write) row for a particular file / account pair
      *
      * @param file_id File ID to look up permissions for
@@ -122,21 +166,6 @@ class Files_model extends CI_Model
             return $query->row();
         else
             return NULL;
-    }
-
-    /**
-     * Returns all file_permission attributes (read/write) row for a particular file
-     *
-     * @param file_id File ID to look up permissions for
-     * @return An array of file_permission rows. If none, an empty array
-     */
-    function getAllPermissions($file_id) {
-        $this->db->select('accounts.email as account_email, file_permissions.*');
-        $this->db->from('file_permissions');
-        $this->db->join('accounts', 'accounts.account_pk = file_permissions.account_id');
-        $this->db->where(array('file_id' => $file_id));
-        $query = $this->db->get();
-        return $query->result();
     }
 
     /**
@@ -208,6 +237,97 @@ class Files_model extends CI_Model
      */
     function removePermission($file_id, $account_id) {
         $this->db->delete('file_permissions', array('file_id' => $file_id, 'account_id' => $account_id));
+
+        if($this->db->affected_rows() == 1)
+            return TRUE;
+
+        return FALSE;
+    }
+
+    /**
+     * Returns the file_group_accesses attributes (read/write) row for a particular file / group pair
+     *
+     * @param file_id File ID to look up permissions for
+     * @param group_id Associated group id to lookup permissions for
+     * @return If found, file_permission attributes for the file/group pair. NULL if not found
+     */
+    function getGroupPermission($file_id, $group_id) {
+        $query = $this->db->get_where('file_group_accesses', array('file_id' => $file_id, 'group_id' => $account_id), 1, 0);
+        if($query->num_rows() > 0)
+            return $query->row();
+        else
+            return NULL;
+    }
+
+    /**
+     * Creates file permissions for a file/group pair if they dont exist
+     *
+     * @param file_id File ID
+     * @param group_id Associated group id
+     * @param read Read allowed (boolean)
+     * @param write Write allowed (boolean)
+     * @return TRUE if successful. FALSE otherwise
+     */
+    function addGroupPermission($file_id, $group_id, $read, $write) {
+        $perm = $this->Files_model->getGroupPermission($file_id, $group_id);
+        
+        if($perm == NULL) {
+            // Doesnt exist, add permission to the DB
+            $data = array(
+                'file_id'       => $file_id,
+                'group_id'    => $group_id,
+                'read'          => $read,
+                'write'         => $write
+            );
+            $this->db->insert('file_group_accesses', $data);
+
+            if($this->db->affected_rows() == 1)
+                return TRUE;
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * Updates file permissions for a file/group pair. Creates permissions if they dont exist
+     *
+     * @param file_id File ID
+     * @param group_id Associated group id
+     * @param read Read allowed (boolean)
+     * @param write Write allowed (boolean)
+     * @return TRUE if successful. FALSE otherwise
+     */
+    function updateGroupPermission($file_id, $group_id, $read, $write) {
+        // If read and write are being taken away, delete the row in the DB
+        if($read == FALSE && $write == FALSE) {
+            $this->Files_model->removeGroupPermission($file_id, $group_id);
+            return TRUE;
+        }
+
+        // Update the permissions
+        $data = array(
+            'read'          => $read,
+            'write'         => $write
+        );
+        $this->db->where('file_id', $file_id);
+        $this->db->where('group_id', $group_id);
+        $this->db->update('file_group_accesses', $data);
+
+        if($this->db->affected_rows() == 1)
+            return TRUE;
+
+        return FALSE;
+    }
+
+    /**
+     * Deletes an groups permissions to a file
+     *
+     * @param file_id File ID
+     * @param group_id Associated group id
+     * @return TRUE if successful. FALSE otherwise
+     */
+    function removeGroupPermission($file_id, $group_id) {
+        $this->db->delete('file_group_accesses', array('file_id' => $file_id, 'group_id' => $group_id));
 
         if($this->db->affected_rows() == 1)
             return TRUE;

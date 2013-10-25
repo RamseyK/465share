@@ -46,9 +46,33 @@
 		<?=form_close()?>
 
 		<br /><br />
-		<span style="font-weight: bold">Group Membership</span><br /><br />
-		<p>Grant read AND write access to all accounts in the following groups</p>
-		<?=anchor('groups', 'Manage Groups')?><br />
+		<span style="font-weight: bold">Group Permissions</span><br /><br />
+		<p>Grant read AND write access to all accounts in the following groups. <?=anchor('groups', 'Manage My Groups')?></p>
+
+		<?=form_open('files/edit_group_permissions/'.$file->file_pk)?>
+		<table cellspacing="5">
+			<tr>
+				<th>Group Name</th>
+				<th>Read</th>
+				<th>Write</th>
+			</tr>
+
+			<?php foreach($group_accesses as $gr): ?>
+			<tr>
+				<td><?=$gr->name?></td>
+				<td><?=form_checkbox($gr->file_group_access_pk.'_read', 'r', $gr->read)?></td>
+				<td><?=form_checkbox($gr->file_group_access_pk.'_write', 'r', $gr->write)?></td>
+			</tr>
+			<?php endforeach; ?>
+
+			<tr>
+				<td><?=form_label('Add:', 'add_group_dropdown')?><?=form_dropdown('add_group_dropdown', $add_group_dropdown, 'none')?></td>
+				<td></td>
+				<td></td>
+			</tr>
+		</table>
+		<?=form_submit(array('id' => 'update_group_perms', 'name' => 'update_group_perms'), 'Update')?>
+		<?=form_close()?>
 	</div>
 
 	<div id="public-tab">
@@ -68,14 +92,3 @@
 </div>
 <br />
 <?=anchor('files/download/'.$file->file_pk, 'Download', array('id' => 'download_link'))?>
-
-<br /><br />
-<span style="font-weight: bold">Testing for the permissions tab</span><br /><br />
-
-<span style="font-weight: bold">Group Membership</span><br /><br />
-<p>Grant read AND write access to all accounts in the following groups</p>
-
-<?=form_open('files/edit_group_permissions/'.$file->file_pk)?>
-
-<?=form_submit(array('id' => 'update_group_perms', 'name' => 'update_group_perms'), 'Update')?>
-<?=form_close()?>
