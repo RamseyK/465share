@@ -7,5 +7,10 @@ A sample file sharing web application built with CodeIgniter 2.1.4
 
 Prerequisites: Apache 2.2+, MySQL 5.5+, PHP 5.4+
 
+Setup:
+Setup MySQL Database with default dump in /sql
+config.php.default and database.php.default must be renamed to .php and configured (see CI user guide)
+Set permissions of the uploads directory to 777
+
 License:
 See license.txt
