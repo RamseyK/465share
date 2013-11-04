@@ -227,8 +227,11 @@ class Files extends CI_Controller
 		// Update Individual Account Permissions
 		$all_perms = $this->Files_model->getAllAccountPermissions($file_id);
 		foreach($all_perms as $perm) {
-			// Each checkbox element in the form corresponds to the perm id plus _read or _write
+			// Skip the owners permission entry - this cant be modified
+			if($file->owner_account_id == $perm->account_id)
+				continue;
 
+			// Each checkbox element in the form corresponds to the perm id plus _read or _write
 			$updated_read = FALSE;
 			if(isset($_POST[$perm->file_permission_pk.'_read']))
 				$updated_read = TRUE;
@@ -238,16 +241,8 @@ class Files extends CI_Controller
 				$updated_write = TRUE;
 
 			// Update the permission in the database if it's changed
-			if($perm->read != $updated_read || $perm->write != $updated_write) {
-				// Ensure the files owners access isnt being taken away
-				if($file->owner_account_id == $perm->account_id) {
-					$this->session->set_flashdata('error_message', 'The access of the files owner cannot be modified');
-					redirect('files/edit/'.$file_id);
-					return;
-				}
-
+			if($perm->read != $updated_read || $perm->write != $updated_write)
 				$this->Files_model->updatePermission($file_id, $perm->account_id, $updated_read, $updated_write);
-			}
 		}
 
 		// A new account is being added to the permission list
