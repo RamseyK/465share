@@ -53,7 +53,7 @@ class Groups extends CI_Controller
 		// Check for button POST data
 		if($this->input->post('submit_create_group')) {
 			// Rules
-			$this->form_validation->set_rules('group_name', 'Group Name', 'trim|required|min_length[1]|max_length[32]|alpha_numeric');
+			$this->form_validation->set_rules('group_name', 'Group Name', 'trim|required|min_length[1]|max_length[32]');
 			$this->form_validation->set_rules('parent_group_dropdown', 'Parent Group', 'trim|required|is_natural');
 			
 			if($this->form_validation->run() == FALSE) {
