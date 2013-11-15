@@ -225,6 +225,9 @@ class Files extends CI_Controller
 			return;
 		}
 
+		// Grab all permissions BEFORE a new user may be added
+		$all_perms = $this->Files_model->getAllAccountPermissions($file_id);
+
 		// A new account is being added to the permission list
 		$email = $this->input->post('acct_perm_new_user');
 		if(!empty($email)) {
@@ -240,7 +243,6 @@ class Files extends CI_Controller
 		}
 
 		// Update Individual Account Permissions
-		$all_perms = $this->Files_model->getAllAccountPermissions($file_id);
 		foreach($all_perms as $perm) {
 			// Skip the owners permission entry - this cant be modified
 			if($file->owner_account_id == $perm->account_id)
