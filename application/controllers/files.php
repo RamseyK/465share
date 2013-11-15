@@ -180,6 +180,7 @@ class Files extends CI_Controller
 		$stats_data['usage_kb'] = $this->Files_model->getUsageByOwner($account_id);
 
 		// Load template components (all are optional)
+		$page_data['nocache'] = TRUE;
 		$page_data['js'] = $this->load->view('files/edit_js', NULL, TRUE);
 		$page_data['content'] = $this->load->view('files/edit_content', $view_data, TRUE);
 		$page_data['widgets'] = $this->load->view('files/edit_widgets', NULL, TRUE);

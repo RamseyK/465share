@@ -60,6 +60,7 @@ class Accounts_model extends CI_Model
      * Destroy the user's session (on logout)
      */
     function doAccountLogout() {
+    	$this->session->unset_userdata('logged_in');
     	$this->session->sess_destroy();
     }
         

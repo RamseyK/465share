@@ -112,6 +112,7 @@ class Groups extends CI_Controller
 		$view_data['members'] = $this->Groups_model->getAllGroupMembers($group_id);
 
 		// Load the main page template
+		$page_data['nocache'] = TRUE;
 		$page_data['js'] = $this->load->view('groups/view_js', $view_data, TRUE);
 		$page_data['content'] = $this->load->view('groups/view_content', $view_data, TRUE);
 		$page_data['widgets'] = $this->load->view('widgets/account_info', NULL, TRUE);

@@ -195,8 +195,8 @@ class Accounts extends CI_Controller
 		
 		if($this->input->post('change')) {
 			// Setup the rules of our form
-			$this->form_validation->set_rules('old_password', 'Old Password', 'trim|required|min_length[3]|max_length[24]|xss_clean|prep_for_form');
-			$this->form_validation->set_rules('new_password', 'New Password', 'trim|required|min_length[3]|max_length[24]|xss_clean|prep_for_form');
+			$this->form_validation->set_rules('old_password', 'Old Password', 'trim|required|min_length[6]|max_length[32]|xss_clean|prep_for_form');
+			$this->form_validation->set_rules('new_password', 'New Password', 'trim|required|min_length[6]|max_length[32]|xss_clean|prep_for_form');
 			$this->form_validation->set_rules('confirm_password', 'Password Confirmation', 'required|matches[new_password]');
 			
 			// Validate form input and check it against the db:
