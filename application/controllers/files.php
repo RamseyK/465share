@@ -225,6 +225,20 @@ class Files extends CI_Controller
 			return;
 		}
 
+		// A new account is being added to the permission list
+		$email = $this->input->post('acct_perm_new_user');
+		if(!empty($email)) {
+			$add_account = $this->Accounts_model->getAccountByEmail($email);
+			if($add_account != NULL) {
+				// A permission will only be added if one doesnt already exist
+				$this->Files_model->createPermission($file_id, $add_account->account_pk, TRUE, FALSE);
+			} else {
+				$this->session->set_flashdata('error_message', 'Could not add user to the permission list. You must enter a valid email of a registered account.');
+				redirect('files/edit/'.$file_id);
+				return;
+			}
+		}
+
 		// Update Individual Account Permissions
 		$all_perms = $this->Files_model->getAllAccountPermissions($file_id);
 		foreach($all_perms as $perm) {
@@ -244,18 +258,6 @@ class Files extends CI_Controller
 			// Update the permission in the database if it's changed
 			if($perm->read != $updated_read || $perm->write != $updated_write)
 				$this->Files_model->updatePermission($file_id, $perm->account_id, $updated_read, $updated_write);
-		}
-
-		// A new account is being added to the permission list
-		$email = $this->input->post('acct_perm_new_user');
-		if(!empty($email)) {
-			$add_account = $this->Accounts_model->getAccountByEmail($email);
-			if($add_account != NULL) {
-				// A permission will only be added if one doesnt already exist
-				$this->Files_model->createPermission($file_id, $add_account->account_pk, TRUE, FALSE);
-			} else {
-				$this->session->set_flashdata('error_message', 'Could not add user to the permission list. You must enter a valid email of a registered account.');
-			}
 		}
 
 		// Reload the normal page

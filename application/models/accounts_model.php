@@ -70,7 +70,7 @@ class Accounts_model extends CI_Model
      * @return TRUE if logged in, FALSE otherwise
      */
     function isLoggedIn() {
-    	return $this->session->userdata('logged_in') == true;
+    	return $this->session->userdata('logged_in') === TRUE;
     }
     
     /**

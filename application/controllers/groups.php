@@ -160,14 +160,6 @@ class Groups extends CI_Controller
 			return;
 		}
 
-		// Loop through group members and see if any were removed (by checking remove next to their name)
-		$members = $this->Groups_model->getAllGroupMembers($group_id);
-		foreach($members as $mem) {
-			if(isset($_POST[$mem->group_member_pk.'_remove']) && ($mem->account_id != $group->owner_account_id)) {
-				$this->Groups_model->removeMember($group_id, $mem->account_id);
-			}
-		}
-
 		// A new member is being added
 		$email = $this->input->post('group_new_user');
 		if(!empty($email)) {
@@ -177,6 +169,16 @@ class Groups extends CI_Controller
 				$this->Groups_model->addMember($group_id, $add_account->account_pk);
 			} else {
 				$this->session->set_flashdata('error_message', 'Could not add group member. You must enter a valid email of a registered account.');
+				redirect('groups/view/'.$group_id);
+				return;
+			}
+		}
+
+		// Loop through group members and see if any were removed (by checking remove next to their name)
+		$members = $this->Groups_model->getAllGroupMembers($group_id);
+		foreach($members as $mem) {
+			if(isset($_POST[$mem->group_member_pk.'_remove']) && ($mem->account_id != $group->owner_account_id)) {
+				$this->Groups_model->removeMember($group_id, $mem->account_id);
 			}
 		}
 
