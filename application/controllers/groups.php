@@ -177,7 +177,7 @@ class Groups extends CI_Controller
 		// Loop through group members and see if any were removed (by checking remove next to their name)
 		$members = $this->Groups_model->getAllGroupMembers($group_id);
 		foreach($members as $mem) {
-			if(array_key_exists($mem->group_member_pk.'_remove', $_POST) && ($mem->account_id != $group->owner_account_id)) {
+			if($this->input->post($mem->group_member_pk.'_remove') && ($mem->account_id != $group->owner_account_id)) {
 				$this->Groups_model->removeMember($group_id, $mem->account_id);
 			}
 		}

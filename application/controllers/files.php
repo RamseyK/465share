@@ -250,11 +250,11 @@ class Files extends CI_Controller
 
 			// Each checkbox element in the form corresponds to the perm id plus _read or _write
 			$updated_read = FALSE;
-			if(array_key_exists($perm->file_permission_pk.'_read', $_POST))
+			if($this->input->post($perm->file_permission_pk.'_read'))
 				$updated_read = TRUE;
 
 			$updated_write = FALSE;
-			if(array_key_exists($perm->file_permission_pk.'_write', $_POST))
+			if($this->input_post($perm->file_permission_pk.'_write'))
 				$updated_write = TRUE;
 
 			// Update the permission in the database if it's changed
@@ -307,11 +307,11 @@ class Files extends CI_Controller
 			// Each checkbox element in the form corresponds to the perm id plus _read or _write
 
 			$updated_read = FALSE;
-			if(array_key_exists($perm->file_group_access_pk.'_read', $_POST))
+			if($this->input->post($perm->file_group_access_pk.'_read'))
 				$updated_read = TRUE;
 
 			$updated_write = FALSE;
-			if(array_key_exists($perm->file_group_access_pk.'_write', $_POST))
+			if($this->input->post($perm->file_group_access_pk.'_write'))
 				$updated_write = TRUE;
 
 			// Update the permission in the database if it's changed
