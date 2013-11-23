@@ -254,7 +254,7 @@ class Files extends CI_Controller
 				$updated_read = TRUE;
 
 			$updated_write = FALSE;
-			if($this->input_post($perm->file_permission_pk.'_write'))
+			if($this->input->post($perm->file_permission_pk.'_write'))
 				$updated_write = TRUE;
 
 			// Update the permission in the database if it's changed
